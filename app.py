@@ -1,28 +1,39 @@
 """
 ================================================================================
-Weather-Based Farm Machinery Planner (Phase 1 — Intermediate Submission)
-S.Y. B.Tech Python Programming Laboratory Capstone Project
-Problem Statement: Agricultural Mechanization & Farm Productivity
+PART 3: STREAMLIT DASHBOARD & APPLICATION INTEGRATION
 ================================================================================
-Phase 1 Scope (50–60% Milestone):
-- Automated meteorological data retrieval (Open-Meteo Historical Archive API)
-- Fallback demonstration weather dataset (offline capability)
-- Robust data cleaning and validation (clean_data)
-- Descriptive weather analytics (mean, median, max, std dev, rainy days)
-- Machinery operational delay tracking (delay rate, hours lost, reasons)
-- Core statistical visualizations (Timeline, Monthly Totals, Histogram)
-- Phase 2 Architectural Blueprint for Inferential Modeling & Weather Planning
+Team Member 3 Responsibility:
+- Streamlit dashboard layout, responsive multi-tab architecture, custom CSS
+- User control panel in sidebar (district selection, date picker, operations)
+- Team member contribution tracking & viva documentation display
+- Integration with Member 1's Data Pipeline (data_pipeline.py)
+- Integration with Member 2's Analytics Engine (analytics.py)
+- Tab 1: Dashboard Overview (4 summary cards, narrative summary, clean_data report)
+- Tab 2: Historical Data Analysis UI (descriptive metrics, chart display, roadmap)
+- Tab 3: Weather-Based Planning UI (Phase 2 preview, operation profiles, blueprint)
 ================================================================================
 """
 
 import datetime
 import os
-import requests
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 import streamlit as st
+
+# ------------------------------------------------------------------------------
+# Import Modular Components from Member 1 and Member 2
+# ------------------------------------------------------------------------------
+from data_pipeline import (
+    fetch_weather_data,
+    load_sample_weather_data,
+    load_machinery_data,
+    clean_data
+)
+
+from analytics import (
+    calculate_weather_statistics,
+    calculate_delay_statistics,
+    create_basic_weather_charts
+)
 
 # ------------------------------------------------------------------------------
 # 1. Page Configuration & Custom Theme Styling
@@ -105,7 +116,17 @@ st.markdown("""
         color: #64748b;
     }
 
-    /* Notice callout boxes */
+    /* Team Contribution Box */
+    .team-box {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        font-size: 0.88rem;
+    }
+
+    /* Callout & Preview Containers */
     .academic-callout {
         background-color: #f0fdf4;
         border: 1px solid #bbf7d0;
@@ -149,7 +170,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 2. Supported Locations & Farming Operations
+# 2. Supported Locations & Baseline Configurations
 # ------------------------------------------------------------------------------
 LOCATIONS = {
     "Pune": {"lat": 18.5204, "lon": 73.8567, "state": "Maharashtra"},
@@ -188,354 +209,8 @@ OPERATION_GUIDELINES = {
 }
 
 # ------------------------------------------------------------------------------
-# 3. Data Fetching and Loading Functions
+# 3. Header Banner & Team Contribution Overview
 # ------------------------------------------------------------------------------
-@st.cache_data(ttl=3600, show_spinner=False)
-def fetch_weather_data(latitude: float, longitude: float, start_date: str, end_date: str):
-    """
-    Fetch daily historical weather information from the Open-Meteo Historical Weather API.
-    API endpoint: https://archive-api.open-meteo.com/v1/archive
-    Variables: precipitation_sum (mm), temperature_2m_max (°C), relative_humidity_2m_mean (%)
-    """
-    url = "https://archive-api.open-meteo.com/v1/archive"
-    params = {
-        "latitude": latitude,
-        "longitude": longitude,
-        "start_date": start_date,
-        "end_date": end_date,
-        "daily": "precipitation_sum,temperature_2m_max,relative_humidity_2m_mean",
-        "timezone": "auto"
-    }
-    try:
-        response = requests.get(url, params=params, timeout=10)
-        if response.status_code != 200:
-            return None, f"API returned status code {response.status_code}: {response.text[:120]}"
-        
-        data = response.json()
-        if "daily" not in data or not data["daily"].get("time"):
-            return None, "Empty or invalid response received from Open-Meteo API."
-
-        daily = data["daily"]
-        df = pd.DataFrame({
-            "date": daily["time"],
-            "precipitation_sum": daily.get("precipitation_sum", []),
-            "temperature_2m_max": daily.get("temperature_2m_max", []),
-            "relative_humidity_2m_mean": daily.get("relative_humidity_2m_mean", [])
-        })
-        return df, None
-
-    except requests.exceptions.Timeout:
-        return None, "Connection timed out while reaching Open-Meteo API. Please verify your internet connection or use offline sample data."
-    except requests.exceptions.ConnectionError:
-        return None, "Network connection error. Open-Meteo API is currently unreachable. You can continue with offline sample data."
-    except Exception as e:
-        return None, f"An unexpected error occurred while fetching weather data: {str(e)}"
-
-
-def load_sample_weather_data(location_name: str = "Pune"):
-    """
-    Load the bundled sample weather CSV data (synthetic demonstration dataset).
-    """
-    file_path = os.path.join("data", "sample_weather.csv")
-    if os.path.exists(file_path):
-        df = pd.read_csv(file_path)
-        if "location" in df.columns:
-            filtered = df[df["location"].str.lower() == location_name.lower()].copy()
-            if not filtered.empty:
-                return filtered
-        return df
-    else:
-        # Fallback inline generation if file is missing
-        dates = pd.date_range("2024-01-01", "2024-12-31", freq="D")
-        np.random.seed(42)
-        precip = [round(np.random.exponential(12.0) if d.month in [6, 7, 8, 9] and np.random.rand() < 0.6 else 0.0, 1) for d in dates]
-        temps = [round(np.random.uniform(25.0, 34.0), 1) for _ in dates]
-        humidity = [round(np.random.uniform(55.0, 85.0), 1) for _ in dates]
-        return pd.DataFrame({
-            "date": dates.strftime("%Y-%m-%d"),
-            "location": location_name,
-            "precipitation_sum": precip,
-            "temperature_2m_max": temps,
-            "relative_humidity_2m_mean": humidity
-        })
-
-
-def load_machinery_data(uploaded_file=None):
-    """
-    Load machinery operations records either from an uploaded CSV file
-    or from the bundled demonstration file (data/machinery_operations.csv).
-    """
-    required_cols = [
-        "date", "location", "operation", "machine_type",
-        "planned_hours", "actual_hours", "delayed", "delay_reason"
-    ]
-    
-    if uploaded_file is not None:
-        try:
-            df = pd.read_csv(uploaded_file)
-            missing = [col for col in required_cols if col not in df.columns]
-            if missing:
-                return None, f"Uploaded CSV is missing required columns: {', '.join(missing)}"
-            return df, None
-        except Exception as e:
-            return None, f"Failed to parse uploaded CSV: {str(e)}"
-
-    file_path = os.path.join("data", "machinery_operations.csv")
-    if os.path.exists(file_path):
-        try:
-            df = pd.read_csv(file_path)
-            return df, None
-        except Exception as e:
-            return None, f"Failed to read data/machinery_operations.csv: {str(e)}"
-    
-    return None, "Default machinery operations dataset not found in data/ folder."
-
-# ------------------------------------------------------------------------------
-# 4. Data Cleaning and Manipulation
-# ------------------------------------------------------------------------------
-def clean_data(df: pd.DataFrame, dataset_type: str = "weather"):
-    """
-    Cleans and standardizes the dataset:
-    - Parses date strings to datetime objects
-    - Converts numerical features to numeric datatypes
-    - Identifies missing values without silently replacing them with zero
-    - Identifies and drops exact duplicate rows
-    - Checks for negative values in rainfall or working hours
-    - Validates binary delay indicator (0 and 1)
-    """
-    report = {
-        "initial_rows": len(df),
-        "final_rows": 0,
-        "missing_values_found": 0,
-        "duplicates_removed": 0,
-        "anomalies_handled": 0,
-        "notes": []
-    }
-    
-    if df is None or df.empty:
-        report["notes"].append("Dataset is empty.")
-        return pd.DataFrame(), report
-
-    clean_df = df.copy()
-
-    # 1. Identify and remove exact duplicate records
-    dup_count = clean_df.duplicated().sum()
-    if dup_count > 0:
-        clean_df = clean_df.drop_duplicates().reset_index(drop=True)
-        report["duplicates_removed"] = int(dup_count)
-        report["notes"].append(f"Removed {dup_count} duplicate record(s).")
-
-    # 2. Convert and validate date column
-    if "date" in clean_df.columns:
-        clean_df["date"] = pd.to_datetime(clean_df["date"], errors="coerce")
-        invalid_dates = clean_df["date"].isna().sum()
-        if invalid_dates > 0:
-            clean_df = clean_df.dropna(subset=["date"]).reset_index(drop=True)
-            report["anomalies_handled"] += int(invalid_dates)
-            report["notes"].append(f"Dropped {invalid_dates} row(s) with unparseable dates.")
-
-    # 3. Clean dataset-specific columns
-    if dataset_type == "weather":
-        num_cols = ["precipitation_sum", "temperature_2m_max", "relative_humidity_2m_mean"]
-        for col in num_cols:
-            if col in clean_df.columns:
-                clean_df[col] = pd.to_numeric(clean_df[col], errors="coerce")
-                missing = clean_df[col].isna().sum()
-                if missing > 0:
-                    report["missing_values_found"] += int(missing)
-                    report["notes"].append(f"Identified {missing} missing values in '{col}'.")
-                
-                # Check for invalid negative values (e.g. negative precipitation)
-                if col == "precipitation_sum":
-                    neg_mask = clean_df[col] < 0
-                    neg_count = neg_mask.sum()
-                    if neg_count > 0:
-                        clean_df.loc[neg_mask, col] = 0.0
-                        report["anomalies_handled"] += int(neg_count)
-                        report["notes"].append(f"Adjusted {neg_count} negative rainfall values to 0.0 mm.")
-
-    elif dataset_type == "machinery":
-        num_cols = ["planned_hours", "actual_hours", "delayed"]
-        for col in num_cols:
-            if col in clean_df.columns:
-                clean_df[col] = pd.to_numeric(clean_df[col], errors="coerce")
-                missing = clean_df[col].isna().sum()
-                if missing > 0:
-                    report["missing_values_found"] += int(missing)
-                    report["notes"].append(f"Identified {missing} missing values in '{col}'.")
-        
-        # Check negative working hours
-        for col in ["planned_hours", "actual_hours"]:
-            if col in clean_df.columns:
-                neg_hours = (clean_df[col] < 0).sum()
-                if neg_hours > 0:
-                    clean_df = clean_df[clean_df[col] >= 0].reset_index(drop=True)
-                    report["anomalies_handled"] += int(neg_hours)
-                    report["notes"].append(f"Dropped {neg_hours} row(s) with invalid negative hours in '{col}'.")
-        
-        # Validate binary delay column (must be 0 or 1)
-        if "delayed" in clean_df.columns:
-            invalid_delay = (~clean_df["delayed"].isin([0, 1])).sum()
-            if invalid_delay > 0:
-                clean_df["delayed"] = clean_df["delayed"].apply(lambda v: 1 if v == 1 else 0)
-                report["anomalies_handled"] += int(invalid_delay)
-                report["notes"].append(f"Normalized {invalid_delay} non-binary values in 'delayed' to 0 or 1.")
-        
-        # Clean text columns
-        text_cols = ["location", "operation", "machine_type", "delay_reason"]
-        for col in text_cols:
-            if col in clean_df.columns:
-                clean_df[col] = clean_df[col].astype(str).str.strip()
-
-    report["final_rows"] = len(clean_df)
-    return clean_df, report
-
-# ------------------------------------------------------------------------------
-# 5. Statistical Calculations
-# ------------------------------------------------------------------------------
-def calculate_weather_statistics(weather_df: pd.DataFrame, rainy_threshold: float = 0.0):
-    """
-    Computes descriptive statistics for historical weather data using Pandas and NumPy.
-    Rainy day is defined as precipitation > rainy_threshold (default > 0.0 mm).
-    """
-    if weather_df is None or weather_df.empty or "precipitation_sum" not in weather_df.columns:
-        return None
-
-    precip = weather_df["precipitation_sum"].dropna()
-    total_days = len(precip)
-    if total_days == 0:
-        return None
-
-    rainy_days_mask = precip > rainy_threshold
-    rainy_days_count = int(rainy_days_mask.sum())
-    rainy_days_pct = (rainy_days_count / total_days) * 100.0
-
-    return {
-        "total_records": total_days,
-        "mean_rain": float(precip.mean()),
-        "median_rain": float(precip.median()),
-        "max_rain": float(precip.max()),
-        "std_rain": float(precip.std()) if total_days > 1 else 0.0,
-        "total_rain": float(precip.sum()),
-        "rainy_days_count": rainy_days_count,
-        "rainy_days_pct": rainy_days_pct,
-        "dry_days_count": total_days - rainy_days_count,
-        "rainy_threshold": rainy_threshold
-    }
-
-
-def calculate_delay_statistics(machinery_df: pd.DataFrame):
-    """
-    Computes descriptive metrics from valid machinery operation records.
-    Delay rate is strictly calculated only from machinery operation records.
-    """
-    if machinery_df is None or machinery_df.empty or "delayed" not in machinery_df.columns:
-        return None
-
-    total_ops = len(machinery_df)
-    if total_ops == 0:
-        return None
-
-    delayed_mask = machinery_df["delayed"] == 1
-    delayed_ops = int(delayed_mask.sum())
-    delay_rate = (delayed_ops / total_ops) * 100.0
-
-    planned = machinery_df["planned_hours"].dropna()
-    actual = machinery_df["actual_hours"].dropna()
-
-    avg_planned = float(planned.mean()) if not planned.empty else 0.0
-    avg_actual = float(actual.mean()) if not actual.empty else 0.0
-
-    # Total recorded hours lost: sum of positive differences between actual and planned hours
-    if "planned_hours" in machinery_df.columns and "actual_hours" in machinery_df.columns:
-        hours_diff = machinery_df["actual_hours"] - machinery_df["planned_hours"]
-        hours_lost = hours_diff.apply(lambda x: max(0.0, float(x)))
-        total_hours_lost = float(hours_lost.sum())
-    else:
-        total_hours_lost = 0.0
-
-    return {
-        "total_operations": total_ops,
-        "delayed_operations": delayed_ops,
-        "on_time_operations": total_ops - delayed_ops,
-        "delay_rate": delay_rate,
-        "avg_planned_hours": avg_planned,
-        "avg_actual_hours": avg_actual,
-        "total_hours_lost": total_hours_lost
-    }
-
-# ------------------------------------------------------------------------------
-# 6. Basic Chart Creation Functions (Matplotlib & Seaborn)
-# ------------------------------------------------------------------------------
-def create_basic_weather_charts(weather_df: pd.DataFrame, rainy_threshold: float = 0.0):
-    """
-    Builds clean, labelled agricultural analytics charts using Matplotlib and Seaborn:
-    1. Daily rainfall timeline (Line Chart)
-    2. Monthly rainfall totals (Bar Chart)
-    3. Daily rainfall distribution (Histogram)
-    """
-    sns.set_theme(style="whitegrid", palette="muted")
-    charts = {}
-
-    if weather_df is None or weather_df.empty:
-        return charts
-
-    # Chart 1: Daily Rainfall Over Time
-    fig1, ax1 = plt.subplots(figsize=(10, 4.2))
-    dates = pd.to_datetime(weather_df["date"])
-    precip = weather_df["precipitation_sum"]
-
-    ax1.plot(dates, precip, color="#2d6a4f", linewidth=1.5, label="Daily Rainfall (mm)")
-    ax1.fill_between(dates, precip, color="#74c69d", alpha=0.35)
-    ax1.axhline(rainy_threshold, color="#e76f51", linestyle="--", linewidth=1.2,
-                label=f"Rainy Day Threshold ({rainy_threshold} mm)")
-    ax1.set_title("Historical Daily Precipitation Over Time", fontsize=13, fontweight="bold", pad=12, color="#1b4332")
-    ax1.set_xlabel("Date", fontsize=10, fontweight="bold")
-    ax1.set_ylabel("Precipitation (mm)", fontsize=10, fontweight="bold")
-    ax1.legend(loc="upper right", frameon=True)
-    fig1.tight_layout()
-    charts["rainfall_timeline"] = fig1
-
-    # Chart 2: Rainfall Totals by Month
-    fig2, ax2 = plt.subplots(figsize=(9, 4.2))
-    w_copy = weather_df.copy()
-    w_copy["month_dt"] = pd.to_datetime(w_copy["date"])
-    w_copy["month_name"] = w_copy["month_dt"].dt.strftime("%b")
-    w_copy["month_num"] = w_copy["month_dt"].dt.month
-    monthly = w_copy.groupby(["month_num", "month_name"])["precipitation_sum"].sum().reset_index()
-    monthly = monthly.sort_values("month_num")
-
-    bars = ax2.bar(monthly["month_name"], monthly["precipitation_sum"], color="#52b788", edgecolor="#2d6a4f")
-    for bar in bars:
-        height = bar.get_height()
-        if height > 0:
-            ax2.annotate(f"{height:.1f}",
-                         xy=(bar.get_x() + bar.get_width() / 2, height),
-                         xytext=(0, 3), textcoords="offset points",
-                         ha="center", va="bottom", fontsize=8, color="#1b4332")
-
-    ax2.set_title("Monthly Total Precipitation (mm)", fontsize=13, fontweight="bold", pad=12, color="#1b4332")
-    ax2.set_xlabel("Month", fontsize=10, fontweight="bold")
-    ax2.set_ylabel("Total Rainfall (mm)", fontsize=10, fontweight="bold")
-    fig2.tight_layout()
-    charts["monthly_rainfall"] = fig2
-
-    # Chart 3: Distribution of Daily Rainfall (Histogram)
-    fig3, ax3 = plt.subplots(figsize=(8, 4.2))
-    precip_clean = weather_df["precipitation_sum"].dropna()
-    sns.histplot(precip_clean, bins=25, color="#40916c", kde=True, ax=ax3, edgecolor="#1b4332")
-    ax3.set_title("Distribution of Daily Precipitation", fontsize=13, fontweight="bold", pad=12, color="#1b4332")
-    ax3.set_xlabel("Daily Precipitation (mm)", fontsize=10, fontweight="bold")
-    ax3.set_ylabel("Frequency (Number of Days)", fontsize=10, fontweight="bold")
-    fig3.tight_layout()
-    charts["rainfall_dist"] = fig3
-
-    return charts
-
-# ------------------------------------------------------------------------------
-# 7. User Interface Layout & Sidebar Controls
-# ------------------------------------------------------------------------------
-# Top Header Banner
 st.markdown("""
 <div class="header-banner">
     <h1>🌾 Weather-Based Farm Machinery Planner</h1>
@@ -544,7 +219,40 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar: Controls and Configuration
+# Team Contribution Card (For College Evaluator / Viva)
+with st.expander("👥 Team Members & Code Division (For Evaluation)", expanded=False):
+    c_m1, c_m2, c_m3 = st.columns(3)
+    with c_m1:
+        st.markdown("""
+        **Member 1: Data Pipeline Lead**  
+        *Source File:* `data_pipeline.py`  
+        - Open-Meteo REST API data retrieval  
+        - Offline demonstration CSV loading  
+        - Data cleaning pipeline (`clean_data`)  
+        - Missing/duplicate/anomaly reporting
+        """)
+    with c_m2:
+        st.markdown("""
+        **Member 2: Analytics & Visuals Lead**  
+        *Source File:* `analytics.py`  
+        - Weather descriptive statistics (mean, median, std)  
+        - Machinery delay analytics & hours lost  
+        - Matplotlib & Seaborn charting engine  
+        - Mathematical formulas & statistical logic
+        """)
+    with c_m3:
+        st.markdown("""
+        **Member 3: UI & System Integration Lead**  
+        *Source File:* `app.py`  
+        - Streamlit dashboard architecture & CSS  
+        - Sidebar filters & district coordination  
+        - Dashboard integration (Tabs 1, 2, and 3)  
+        - Phase 2 Planning Framework Blueprint
+        """)
+
+# ------------------------------------------------------------------------------
+# 4. Sidebar Controls & Configuration
+# ------------------------------------------------------------------------------
 st.sidebar.header("⚙️ Configuration & Filters")
 
 # Location Selection (Pune, Nashik, Thane)
@@ -568,7 +276,7 @@ weather_source_option = st.sidebar.radio(
     help="Fetch live daily weather from Open-Meteo Historical API or load the bundled sample dataset."
 )
 
-# Date Range Selection (Default: complete 2024 calendar year)
+# Date Range Selection (Default: full 2024 calendar year)
 default_start = datetime.date(2024, 1, 1)
 default_end = datetime.date(2024, 12, 31)
 
@@ -604,13 +312,13 @@ filter_machinery_by_op = st.sidebar.checkbox(
     help="If checked, machinery statistics reflect only the chosen operation instead of all operations."
 )
 
-# Rainy Day Threshold Definition
+# Rainy Day Threshold
 st.sidebar.markdown("---")
 st.sidebar.subheader("🌧️ Analytical Parameters")
 rainy_threshold = 0.0
 st.sidebar.caption(f"Rainy Day Definition: Days with precipitation > {rainy_threshold} mm are classified as Rainy Days.")
 
-# Optional File Uploader for Custom Machinery CSV
+# Custom CSV File Uploader
 st.sidebar.markdown("---")
 st.sidebar.subheader("📂 Custom Data Upload")
 custom_machinery_file = st.sidebar.file_uploader(
@@ -619,17 +327,19 @@ custom_machinery_file = st.sidebar.file_uploader(
     help="Upload your own machinery log CSV with required columns (see README)."
 )
 
-# Academic Demonstration Label
+# Academic Attribution & Division Notice
 st.sidebar.markdown("---")
 st.sidebar.markdown("""
 <div style='background-color: #f1f5f9; padding: 10px; border-radius: 6px; font-size: 0.8rem; color: #475569;'>
-    <b>Academic Project Note:</b><br>
-    Intermediate submission (Phase 1: 50–60% Completion). Synthetic sample datasets are explicitly marked as demonstration records.
+    <b>Team Division:</b><br>
+    • <b>Member 1:</b> <code>data_pipeline.py</code><br>
+    • <b>Member 2:</b> <code>analytics.py</code><br>
+    • <b>Member 3:</b> <code>app.py</code>
 </div>
 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 8. Data Loading & Cleaning Execution
+# 5. Data Pipeline Execution (Invoking Member 1's Functions)
 # ------------------------------------------------------------------------------
 raw_weather_df = None
 weather_fetch_error = None
@@ -659,7 +369,7 @@ raw_machinery_df, machinery_load_error = load_machinery_data(uploaded_file=custo
 if machinery_load_error:
     st.error(f"❌ Machinery Dataset Error: {machinery_load_error}")
 
-# Execute Data Cleaning
+# Execute Data Cleaning (clean_data from Member 1)
 clean_weather_df, weather_clean_report = clean_data(raw_weather_df, dataset_type="weather") if raw_weather_df is not None else (pd.DataFrame(), {})
 clean_machinery_df, machinery_clean_report = clean_data(raw_machinery_df, dataset_type="machinery") if raw_machinery_df is not None else (pd.DataFrame(), {})
 
@@ -673,18 +383,18 @@ if not clean_machinery_df.empty and "location" in clean_machinery_df.columns:
 else:
     active_machinery_df = clean_machinery_df.copy()
 
-# Filter by selected operation if user selected the checkbox
+# Filter by selected operation if requested
 if filter_machinery_by_op and not active_machinery_df.empty and "operation" in active_machinery_df.columns:
     active_machinery_df = active_machinery_df[active_machinery_df["operation"].str.lower() == selected_op.lower()]
 
 # ------------------------------------------------------------------------------
-# 9. Compute Baseline Statistics
+# 6. Analytics Execution (Invoking Member 2's Functions)
 # ------------------------------------------------------------------------------
 weather_stats = calculate_weather_statistics(clean_weather_df, rainy_threshold=rainy_threshold)
 machinery_stats = calculate_delay_statistics(active_machinery_df)
 
 # ------------------------------------------------------------------------------
-# 10. Main Application Tabs
+# 7. Main Application Tabs (Assembled by Member 3)
 # ------------------------------------------------------------------------------
 tab1, tab2, tab3 = st.tabs([
     "📊 Dashboard Overview",
@@ -791,11 +501,11 @@ with tab1:
     </div>
     """, unsafe_allow_html=True)
 
-    # Data Quality and Cleaning Report
+    # Data Quality and Cleaning Report (from Member 1's clean_data)
     with st.expander("🛠️ Data Quality & Cleaning Summary (clean_data() Report)", expanded=False):
         c1, c2 = st.columns(2)
         with c1:
-            st.markdown("**Weather Dataset Cleaning**")
+            st.markdown("**Weather Dataset Cleaning (Member 1)**")
             st.write(f"- Initial rows: {weather_clean_report.get('initial_rows', 0)}")
             st.write(f"- Final cleaned rows: {weather_clean_report.get('final_rows', 0)}")
             st.write(f"- Missing values identified: {weather_clean_report.get('missing_values_found', 0)}")
@@ -806,7 +516,7 @@ with tab1:
                     st.caption(f"• {note}")
 
         with c2:
-            st.markdown("**Machinery Operations Dataset Cleaning**")
+            st.markdown("**Machinery Operations Dataset Cleaning (Member 1)**")
             st.write(f"- Initial rows: {machinery_clean_report.get('initial_rows', 0)}")
             st.write(f"- Final cleaned rows: {machinery_clean_report.get('final_rows', 0)}")
             st.write(f"- Missing values identified: {machinery_clean_report.get('missing_values_found', 0)}")
@@ -838,7 +548,7 @@ with tab1:
 with tab2:
     st.subheader("Historical Weather & Machinery Analysis (Phase 1)")
 
-    # Section A: Descriptive Weather Statistics
+    # Section A: Descriptive Weather Statistics (Member 2)
     st.markdown("### A. Descriptive Weather Statistics")
     if weather_stats:
         d_col1, d_col2, d_col3 = st.columns(3)
@@ -857,7 +567,7 @@ with tab2:
 
     st.markdown("---")
 
-    # Section B: Machinery Delay Analysis
+    # Section B: Machinery Delay Analysis (Member 2)
     st.markdown("### B. Machinery Operation Delay Analysis")
     if machinery_stats:
         m_col1, m_col2, m_col3 = st.columns(3)
@@ -880,7 +590,7 @@ with tab2:
 
     st.markdown("---")
 
-    # Section C: Basic Visualizations (Matplotlib & Seaborn)
+    # Section C: Basic Visualizations (Member 2)
     st.markdown("### C. Statistical Data Visualizations")
     charts = create_basic_weather_charts(clean_weather_df, rainy_threshold=rainy_threshold)
 
@@ -916,7 +626,7 @@ with tab2:
 
     st.markdown("---")
 
-    # Section D: Phase 2 Roadmap & Deferred Features Preview
+    # Section D: Phase 2 Roadmap & Deferred Features Preview (Member 3)
     st.markdown("""
     <div class="phase2-callout">
         <h4 style="margin: 0 0 8px 0; color: #1e3a8a;">🔬 Advanced Delay Modeling & Inferential Statistics (Phase 2 Preview)</h4>
@@ -943,7 +653,7 @@ with tab2:
 with tab3:
     st.subheader(f"Weather-Based Operational Planning (Phase 2 Preview) — {selected_location}")
 
-    # Professional Phase 2 Planning Notice
+    # Professional Phase 2 Planning Notice (Member 3)
     st.markdown("""
     <div class="phase2-callout">
         <h4 style="margin: 0 0 6px 0; color: #1e3a8a;">🗓️ Operational Decision-Support System Roadmap</h4>
@@ -1031,7 +741,7 @@ with tab3:
     """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 11. Application Footer & Data Source Transparency
+# 8. Application Footer & Data Source Transparency
 # ------------------------------------------------------------------------------
 st.markdown("---")
 st.markdown("""
@@ -1039,6 +749,6 @@ st.markdown("""
     <b>Weather-Based Farm Machinery Planner</b> | S.Y. B.Tech Python Programming Laboratory Capstone Project (Phase 1: 50–60% Completion)<br>
     <b>Weather Data Provider:</b> Open-Meteo Historical Archive API (Non-commercial open-access).<br>
     <b>Machinery Operations:</b> Demonstration dataset with explicitly synthetic records for student laboratory analysis.<br>
-    <b>Phase 1 Technology Stack:</b> Streamlit, Pandas, NumPy, Matplotlib, Seaborn, Requests.
+    <b>Modular Code Architecture:</b> <code>data_pipeline.py</code> (Member 1) | <code>analytics.py</code> (Member 2) | <code>app.py</code> (Member 3).
 </div>
 """, unsafe_allow_html=True)

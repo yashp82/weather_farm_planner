@@ -3,7 +3,8 @@
 > **S.Y. B.Tech — Python Programming Laboratory Capstone Project**  
 > **Phase 1 — Intermediate Submission (50–60% Completion)**  
 > *Domain:* Agricultural Mechanization & Farm Productivity  
-> *Target Framework:* Streamlit & Scientific Python Stack
+> *Target Framework:* Streamlit & Scientific Python Stack  
+> *Team Size:* 3 Members
 
 ---
 
@@ -18,60 +19,92 @@ This **Phase 1 intermediate submission** represents a **50–60% completion mile
 
 ---
 
-## 2. Phase 1 Implemented Features (Current Version)
+## 2. Team Code Division & Viva Preparation (3 Members)
 
-### A. Interactive Streamlit Dashboard
-- **Agricultural Theme:** Styled with an agricultural green, white, and soft-grey visual design.
-- **District Selection:** Supports Maharashtra agricultural hubs (**Pune**, **Nashik**, and **Thane**) with latitude and longitude coordinates.
-- **Date Range Selector:** Configurable historical date range (defaulting to the complete 2024 calendar year).
-- **Farming Operation Filter:** Supports major mechanized operations (**Ploughing**, **Sowing**, **Spraying**, **Harvesting**).
-- **Four Core Summary Metric Cards:**
-  1. *Total Weather Records* (days loaded in observation window).
-  2. *Average Daily Rainfall* (mm).
-  3. *Number of Rainy Days* (days with precipitation $> 0.0\text{ mm}$, including percentage).
-  4. *Machinery Operation Delay Rate* (calculated **strictly** from machinery operation records, displaying "Not available" if logs are absent).
-- **Automated Narrative Summary:** Dynamically generates text describing rainfall patterns and recorded machinery delays.
+To ensure each team member can independently present and defend their individual contribution during evaluation, the codebase is cleanly modularized into 3 distinct parts:
 
-### B. Automated Historical Weather Data Ingestion
-- **Live Open-Meteo Archive API:** Fetches daily date, precipitation sum (mm), maximum temperature (°C), and mean relative humidity (%).
-- **Resilient Error Handling:** Gracefully catches connection timeouts, API errors, and invalid date responses.
-- **Offline Demonstration Fallback:** One-click fallback button loads bundled demonstration weather records when offline or during connectivity disruptions.
-- **Cached Requests:** Employs Streamlit `@st.cache_data` caching to prevent redundant API queries.
-
-### C. Data Cleaning & Validation Pipeline (`clean_data()`)
-- **Datetime Parsing:** Automatically standardizes date strings using `pd.to_datetime()`.
-- **Numeric Coercion:** Coerces numeric attributes via `pd.to_numeric()`.
-- **Missing Value Detection:** Accurately identifies missing observations without silently filling values with zero.
-- **Duplicate Removal:** Identifies and drops exact duplicate records.
-- **Range & Value Validation:** Verifies non-negative rainfall and working hours, and normalizes delay indicators strictly to binary values (`0` and `1`).
-- **Data Quality Report:** Displays a structured expander in the UI summarizing initial rows, final rows, missing values, duplicates removed, and anomalies handled.
-
-### D. Descriptive Statistical Analysis (Pandas & NumPy)
-- **Weather Statistics:** Mean daily rainfall, median daily rainfall, maximum daily rainfall, standard deviation of rainfall ($\sigma$), cumulative rainfall, and rainy days count & percentage.
-- **Machinery Statistics:** Total recorded operations, delayed operations count, delay rate percentage, average planned hours, average actual hours, and total recorded hours lost.
-
-### E. Statistical Data Visualizations (Matplotlib & Seaborn)
-1. **Daily Rainfall Timeline (Line Chart):** Chronological rainfall distribution with rainy day threshold line.
-2. **Monthly Precipitation Totals (Bar Chart):** Seasonal rainfall totals across calendar months.
-3. **Daily Rainfall Distribution (Histogram with KDE):** Visualizes skewness and frequency of rainfall events.
-*(Each chart includes descriptive titles, labeled axes, appropriate units, and explanatory insight notes).*
-
-### F. Machinery Operations Dataset & Custom Upload
-- Ingests `data/machinery_operations.csv` across operations, machine types, and locations.
-- Supports custom user CSV uploads via `st.file_uploader` with automated column validation.
+```text
+d:\weather_farm_planner\
+├── data_pipeline.py     <-- PART 1: Member 1 (Data Ingestion & Cleaning)
+├── analytics.py         <-- PART 2: Member 2 (Statistical Analytics & Visualization)
+├── app.py               <-- PART 3: Member 3 (Streamlit UI & System Integration)
+├── requirements.txt
+├── README.md
+└── data/
+    ├── machinery_operations.csv
+    └── sample_weather.csv
+```
 
 ---
 
-## 3. Technology Stack & Dependencies (Phase 1)
+### 👨‍💻 Member 1: Data Ingestion & Data Cleaning Pipeline
+- **Primary Source File:** [`data_pipeline.py`](file:///d:/weather_farm_planner/data_pipeline.py)
+- **Key Functions Owned:**
+  - `fetch_weather_data(latitude, longitude, start_date, end_date)`: Connects to the Open-Meteo Historical Archive API using `requests`, handles HTTP errors and network timeouts, and caches responses with `@st.cache_data`.
+  - `load_sample_weather_data(location_name)`: Provides offline demonstration fallback from [`data/sample_weather.csv`](file:///d:/weather_farm_planner/data/sample_weather.csv) so the app never crashes during offline evaluation.
+  - `load_machinery_data(uploaded_file)`: Ingests [`data/machinery_operations.csv`](file:///d:/weather_farm_planner/data/machinery_operations.csv) or handles user-uploaded custom CSVs with column validation.
+  - `clean_data(df, dataset_type)`: Performs datetime standardization (`pd.to_datetime`), numeric type coercion (`pd.to_numeric`), duplicate removal (`drop_duplicates`), negative value clipping/checks, binary normalization of the `delayed` column (`{0, 1}`), and generates a structured Data Quality Report dictionary.
 
-| Library | Version | Role in Phase 1 |
-| :--- | :--- | :--- |
-| **Streamlit** | $\ge 1.30.0$ | Interactive dashboard interface, sidebar controls, metric cards, and layout. |
-| **Pandas** | $\ge 2.0.0$ | Data ingestion, tabular cleaning, date parsing, aggregations, and filtering. |
-| **NumPy** | $\ge 1.24.0$ | Vectorized numeric operations, hours lost calculation, and clipping. |
-| **Matplotlib** | $\ge 3.8.0$ | Primary canvas, figure layouts, and bar/line charts. |
-| **Seaborn** | $\ge 0.13.0$ | Statistical distributions and histogram KDE estimation. |
-| **Requests** | $\ge 2.31.0$ | HTTP REST client for Open-Meteo Historical Archive API. |
+#### 💡 Member 1 Viva Questions & Answers:
+* **Q: How does `fetch_weather_data` handle internet failures?**  
+  *Ans:* It wraps the REST call in a `try-except` catching `requests.exceptions.Timeout` and `ConnectionError`. If an error occurs, it returns `(None, error_message)` instead of crashing, allowing Member 3's UI to offer the offline sample dataset fallback.
+* **Q: Why don't you fill missing rainfall values with zero in `clean_data`?**  
+  *Ans:* Silently replacing missing values with zero distorts meteorological reality; zero rainfall means a dry day, whereas a missing value means an unrecorded observation. We identify and report missing entries explicitly.
+* **Q: What data validation checks do you perform on machinery records?**  
+  *Ans:* We verify that working hours are non-negative, drop duplicate entries, ensure date parsing succeeds, and ensure the `delayed` indicator is strictly binary (`0` or `1`).
+
+---
+
+### 👨‍💻 Member 2: Statistical Analytics & Data Visualization Engine
+- **Primary Source File:** [`analytics.py`](file:///d:/weather_farm_planner/analytics.py)
+- **Key Functions Owned:**
+  - `calculate_weather_statistics(weather_df, rainy_threshold=0.0)`: Computes mean, median, maximum, standard deviation ($\sigma$), cumulative rainfall, and rainy days count & percentage.
+  - `calculate_delay_statistics(machinery_df)`: Computes total operations, delayed operations, delay rate percentage, average planned hours, average actual hours, and total recorded hours lost ($\sum \max(0, \text{actual} - \text{planned})$).
+  - `create_basic_weather_charts(weather_df, rainy_threshold=0.0)`: Generates 3 Matplotlib & Seaborn figures with titles, labeled axes, units, and insight notes:
+    - *Chart 1:* Daily Rainfall Timeline (Line Chart with threshold).
+    - *Chart 2:* Monthly Total Precipitation (Bar Chart with seasonal totals).
+    - *Chart 3:* Distribution of Daily Precipitation (Histogram with Seaborn KDE).
+
+#### 💡 Member 2 Viva Questions & Answers:
+* **Q: How is the machinery delay rate calculated, and can it be calculated from weather data alone?**  
+  *Ans:* No, the delay rate must be calculated strictly from machinery logs using $R_{\text{delay}} = \frac{\text{delayed operations}}{\text{total operations}} \times 100\%$. Weather alone cannot determine whether a machine was delayed.
+* **Q: What formula did you use for "Hours Lost"?**  
+  *Ans:* $H_{\text{lost}} = \sum \max(0, \text{actual\_hours} - \text{planned\_hours})$. We take only positive differences where the actual duration exceeded the planned schedule.
+* **Q: What insight does the histogram with KDE reveal in Chart 3?**  
+  *Ans:* Daily precipitation is heavily right-skewed; most days record zero or light rainfall, while a few intense monsoon cloudbursts make up the long positive tail.
+
+---
+
+### 👨‍💻 Member 3: Streamlit UI, System Integration & Planning Blueprint
+- **Primary Source File:** [`app.py`](file:///d:/weather_farm_planner/app.py)
+- **Key Functions & Sections Owned:**
+  - `st.set_page_config` and agricultural green/white/grey CSS design system.
+  - Sidebar layout: district selector (**Pune**, **Nashik**, **Thane**), date picker, operation filter, data source toggle, and custom CSV uploader.
+  - Orchestrating Member 1's `data_pipeline.py` and Member 2's `analytics.py`.
+  - **Tab 1: Dashboard Overview:** 4 summary metric cards, automated dynamic narrative summary, and Member 1's Data Quality Report expander.
+  - **Tab 2: Historical Analysis UI:** Layout of Member 2's descriptive stats and rendering of the 3 Matplotlib/Seaborn charts.
+  - **Tab 3: Weather-Based Planning UI (Phase 2 Preview):** Architectural blueprint of the upcoming 7-day forecast decision engine, operation guidelines profile, decision indicators matrix, and agronomic disclaimers.
+
+#### 💡 Member 3 Viva Questions & Answers:
+* **Q: Why was Streamlit selected over Django, Flask, or React?**  
+  *Ans:* Streamlit allows rapid prototyping of pure Python data science apps. It natively binds to Pandas DataFrames and Matplotlib figures without needing a separate JavaScript frontend, database, or API layer.
+* **Q: Why are correlation and live forecast planning shown as Phase 2 previews in Tab 2 and Tab 3?**  
+  *Ans:* In this Phase 1 (50–60%) milestone, our goal was to build a clean, validated baseline with descriptive statistics and data cleaning. Rather than fabricating fake forecasts or fake p-values, we preserved the 3-tab layout and provided an architectural roadmap for Phase 2.
+* **Q: What agronomic limitations are built into the planning system?**  
+  *Ans:* Rainfall forecasts are planning heuristics, not direct soil safety measurements. Rainfall alone does not measure soil cone index (bearing strength) or root-zone saturation; operators must still physically inspect field trafficability.
+
+---
+
+## 3. Technology Stack & Dependencies
+
+```text
+streamlit>=1.30.0
+pandas>=2.0.0
+numpy>=1.24.0
+matplotlib>=3.8.0
+seaborn>=0.13.0
+requests>=2.31.0
+```
 
 ---
 
@@ -102,17 +135,12 @@ This **Phase 1 intermediate submission** represents a **50–60% completion mile
 ### 2. Machinery Delay Metrics
 - **Delay Rate ($R_{\text{delay}}$):**
   $$R_{\text{delay}} = \left( \frac{\sum \text{delayed operations}}{\text{total logged operations}} \right) \times 100\%$$
-  *(Note: Computed strictly from machinery operation records).*
 - **Hours Lost ($H_{\text{lost}}$):**
   $$H_{\text{lost}} = \sum \max(0, \text{actual\_hours} - \text{planned\_hours})$$
 
 ---
 
 ## 6. Installation & Execution Guide
-
-### Prerequisites
-- Python 3.10+ installed on your computer.
-- Windows PowerShell or Command Prompt.
 
 ### Step-by-Step Instructions (Windows PowerShell)
 
@@ -124,7 +152,7 @@ cd d:\weather_farm_planner
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 
-# 3. Install Phase 1 dependencies
+# 3. Install dependencies
 pip install -r requirements.txt
 
 # 4. Launch the Streamlit application
@@ -136,16 +164,7 @@ The application will launch in your browser at:
 
 ---
 
-## 7. Current System Limitations (Phase 1)
-1. **Descriptive Scope Only:** Phase 1 focuses strictly on baseline descriptive statistics and data cleaning. It does not perform inferential hypothesis testing or multi-variable regression.
-2. **Historical Focus:** Phase 1 analyzes historical weather archives; upcoming 7-day numerical forecast ingestion is scheduled for Phase 2.
-3. **No Direct Soil Sensing:** Rainfall serves as an observational proxy. The system does not measure direct soil cone bearing capacity or volumetric soil water content.
-
----
-
-## 8. 🗺️ Phase 2 Roadmap (Deferred Advanced Features)
-
-The following advanced capabilities are scheduled for the **Phase 2 final submission**:
+## 7. 🗺️ Phase 2 Roadmap (Deferred Advanced Features)
 
 | Feature / Module | Purpose in Phase 2 | Planned Implementation |
 | :--- | :--- | :--- |
@@ -155,19 +174,3 @@ The following advanced capabilities are scheduled for the **Phase 2 final submis
 | **Delay Scatter & Trendline Plot** | Visualize relationship between rainfall intensity and lost operating hours | Seaborn regression scatter plot |
 | **7-Day Live Weather Forecast** | Ingest numerical precipitation forecasts and probabilities | Open-Meteo Forecast API client |
 | **Dynamic Operational Planning Matrix** | Evaluate operation-specific rainfall tolerance heuristics | Interactive heuristic risk evaluation engine |
-
----
-
-## 9. Viva Voce Key Questions (Phase 1 Evaluation)
-
-**Q1: What is the primary milestone achieved in Phase 1?**  
-*Ans:* Phase 1 establishes the end-to-end data pipeline: automated API weather retrieval, robust cleaning via `clean_data()`, calculation of descriptive weather and machinery delay statistics, and generation of statistical charts using Matplotlib and Seaborn.
-
-**Q2: How does the application handle missing data or offline environments?**  
-*Ans:* The `clean_data()` function identifies missing values without silently zero-filling them. For offline environments or API failures, a fallback toggle loads the bundled synthetic dataset (`data/sample_weather.csv`), ensuring zero application crashes.
-
-**Q3: How is the machinery delay rate calculated?**  
-*Ans:* The delay rate is calculated strictly from valid machinery operation logs ($\frac{\text{delayed operations}}{\text{total operations}} \times 100\%$). It is never fabricated or computed solely from weather records.
-
-**Q4: Why are correlation and hypothesis testing deferred to Phase 2?**  
-*Ans:* To maintain software engineering best practices. Phase 1 focuses on data integrity, descriptive baselines, and data validation. Inferential modeling and predictive planning are introduced in Phase 2 once the foundation is proven sound.
