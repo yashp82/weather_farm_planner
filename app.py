@@ -1,12 +1,18 @@
 """
 ================================================================================
-Weather-Based Farm Machinery Planner
+Weather-Based Farm Machinery Planner (Phase 1 — Intermediate Submission)
 S.Y. B.Tech Python Programming Laboratory Capstone Project
 Problem Statement: Agricultural Mechanization & Farm Productivity
 ================================================================================
-This application provides data analytics and weather-based planning to help
-farmers and farm machinery planners analyze how precipitation impacts farm
-equipment operations (ploughing, sowing, spraying, harvesting).
+Phase 1 Scope (50–60% Milestone):
+- Automated meteorological data retrieval (Open-Meteo Historical Archive API)
+- Fallback demonstration weather dataset (offline capability)
+- Robust data cleaning and validation (clean_data)
+- Descriptive weather analytics (mean, median, max, std dev, rainy days)
+- Machinery operational delay tracking (delay rate, hours lost, reasons)
+- Core statistical visualizations (Timeline, Monthly Totals, Histogram)
+- Phase 2 Architectural Blueprint for Inferential Modeling & Weather Planning
+================================================================================
 """
 
 import datetime
@@ -16,7 +22,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from scipy import stats
 import streamlit as st
 
 # ------------------------------------------------------------------------------
@@ -62,13 +67,14 @@ st.markdown("""
     }
     .header-banner .badge {
         display: inline-block;
-        background-color: rgba(255, 255, 255, 0.2);
-        padding: 4px 10px;
+        background-color: rgba(255, 255, 255, 0.22);
+        padding: 4px 12px;
         border-radius: 6px;
         font-size: 0.82rem;
         margin-top: 10px;
         color: #f1f5f9;
-        font-weight: 500;
+        font-weight: 600;
+        border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
     /* Metric Cards */
@@ -99,32 +105,6 @@ st.markdown("""
         color: #64748b;
     }
 
-    /* Recommendation Badges */
-    .badge-lower-concern {
-        background-color: #d1fae5;
-        color: #065f46;
-        padding: 5px 12px;
-        border-radius: 6px;
-        font-weight: 600;
-        display: inline-block;
-    }
-    .badge-caution {
-        background-color: #fef3c7;
-        color: #92400e;
-        padding: 5px 12px;
-        border-radius: 6px;
-        font-weight: 600;
-        display: inline-block;
-    }
-    .badge-higher-concern {
-        background-color: #fee2e2;
-        color: #991b1b;
-        padding: 5px 12px;
-        border-radius: 6px;
-        font-weight: 600;
-        display: inline-block;
-    }
-
     /* Notice callout boxes */
     .academic-callout {
         background-color: #f0fdf4;
@@ -135,6 +115,15 @@ st.markdown("""
         margin: 16px 0;
         font-size: 0.92rem;
         color: #166534;
+    }
+    .phase2-callout {
+        background-color: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-left: 4px solid #3b82f6;
+        padding: 16px 20px;
+        border-radius: 8px;
+        margin: 16px 0;
+        color: #1e293b;
     }
     .disclaimer-callout {
         background-color: #fffbeb;
@@ -148,19 +137,19 @@ st.markdown("""
     }
     .chart-insight-box {
         background-color: #f8fafc;
-        border-left: 3px solid #64748b;
-        padding: 8px 12px;
+        border-left: 3px solid #2d6a4f;
+        padding: 10px 14px;
         margin-top: 8px;
         margin-bottom: 24px;
         font-size: 0.88rem;
         color: #334155;
-        border-radius: 0 4px 4px 0;
+        border-radius: 0 6px 6px 0;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 2. Supported Locations & Baseline Configurations
+# 2. Supported Locations & Farming Operations
 # ------------------------------------------------------------------------------
 LOCATIONS = {
     "Pune": {"lat": 18.5204, "lon": 73.8567, "state": "Maharashtra"},
@@ -170,35 +159,31 @@ LOCATIONS = {
 
 FARM_OPERATIONS = ["Ploughing", "Sowing", "Spraying", "Harvesting"]
 
-# Operation-specific rainfall sensitivity guidelines (Heuristics)
+# Operation Specifications (Heuristics & Phase 2 Blueprint)
 OPERATION_GUIDELINES = {
-    "Spraying": {
-        "description": "Chemical spraying (pesticides, fungicides, foliar nutrients) requires dry foliage. Rain within 2-4 hours washes chemicals away.",
-        "recommended_max_rain": 1.0,
-        "recommended_max_prob": 30.0,
-        "machine": "Boom Sprayer / Tractor Mounted Sprayer",
-        "guidance": "High rain sensitivity: Avoid operations when precipitation is expected."
-    },
-    "Harvesting": {
-        "description": "Combine harvesters and grain transport equipment require dry crops and stable soil to avoid grain rotting and deep ruts.",
-        "recommended_max_rain": 2.0,
-        "recommended_max_prob": 35.0,
-        "machine": "Combine Harvester / Multi-crop Thresher",
-        "guidance": "High soil & crop moisture sensitivity: Standing water halts harvesting."
-    },
     "Ploughing": {
-        "description": "Tractor ploughing needs manageable soil friability. Extremely wet, saturated clay causes wheel slippage and severe soil compaction.",
+        "description": "Primary and secondary tillage to prepare seedbed friability. Waterlogged soil causes wheel slippage and severe subsoil compaction.",
         "recommended_max_rain": 10.0,
-        "recommended_max_prob": 60.0,
-        "machine": "Tractor (45-55 HP) with Disc/Mouldboard Plough",
-        "guidance": "Moderate moisture tolerance: Dry ploughing is difficult; waterlogged soil clogs tillage implements."
+        "machine": "Tractor (45–55 HP) with Disc or Mouldboard Plough",
+        "guidance": "Moderate moisture tolerance. Unworkable under standing water."
     },
     "Sowing": {
-        "description": "Seed drills require optimum seedbed moisture. Excessive rain leads to seed rotting or soil capping.",
+        "description": "Seed placement via automated seed drills. Excessive rainfall washes out seed beds or causes surface soil crusting.",
         "recommended_max_rain": 8.0,
-        "recommended_max_prob": 50.0,
         "machine": "Tractor with Automated Seed-cum-Fertilizer Drill",
-        "guidance": "Optimal moisture window: Light rain post-sowing is beneficial; heavy downpours cause seed crusting."
+        "guidance": "Requires optimal seedbed moisture; vulnerable to heavy downpours."
+    },
+    "Spraying": {
+        "description": "Application of crop protection chemicals and foliar nutrients. Foliage must stay dry for several hours to prevent chemical wash-off.",
+        "recommended_max_rain": 1.0,
+        "machine": "Tractor-Mounted Boom Sprayer",
+        "guidance": "High rain sensitivity. Best performed during dry spells."
+    },
+    "Harvesting": {
+        "description": "Mechanized grain and crop cutting. Saturated soil mires heavy combine harvesters, causing lodging and grain spoilage.",
+        "recommended_max_rain": 2.0,
+        "machine": "Self-Propelled Combine Harvester",
+        "guidance": "High moisture sensitivity. Requires firm, dry field conditions."
     }
 }
 
@@ -228,7 +213,7 @@ def fetch_weather_data(latitude: float, longitude: float, start_date: str, end_d
         
         data = response.json()
         if "daily" not in data or not data["daily"].get("time"):
-            return None, "Empty or invalid response received from weather service."
+            return None, "Empty or invalid response received from Open-Meteo API."
 
         daily = data["daily"]
         df = pd.DataFrame({
@@ -247,42 +232,6 @@ def fetch_weather_data(latitude: float, longitude: float, start_date: str, end_d
         return None, f"An unexpected error occurred while fetching weather data: {str(e)}"
 
 
-@st.cache_data(ttl=1800, show_spinner=False)
-def fetch_forecast_data(latitude: float, longitude: float):
-    """
-    Fetch upcoming 7-day weather forecast from the Open-Meteo Forecast API.
-    API endpoint: https://api.open-meteo.com/v1/forecast
-    Variables: precipitation_sum (mm), precipitation_probability_max (%), temperature_2m_max (°C)
-    """
-    url = "https://api.open-meteo.com/v1/forecast"
-    params = {
-        "latitude": latitude,
-        "longitude": longitude,
-        "daily": "precipitation_sum,precipitation_probability_max,temperature_2m_max",
-        "timezone": "auto"
-    }
-    try:
-        response = requests.get(url, params=params, timeout=10)
-        if response.status_code != 200:
-            return None, f"Forecast API returned error code {response.status_code}"
-        
-        data = response.json()
-        if "daily" not in data or not data["daily"].get("time"):
-            return None, "No forecast records received."
-
-        daily = data["daily"]
-        df = pd.DataFrame({
-            "date": daily["time"],
-            "precipitation_sum": daily.get("precipitation_sum", [0.0]*len(daily["time"])),
-            "precipitation_probability_max": daily.get("precipitation_probability_max", [0]*len(daily["time"])),
-            "temperature_2m_max": daily.get("temperature_2m_max", [28.0]*len(daily["time"]))
-        })
-        return df, None
-
-    except Exception as e:
-        return None, f"Forecast unavailable: {str(e)}"
-
-
 def load_sample_weather_data(location_name: str = "Pune"):
     """
     Load the bundled sample weather CSV data (synthetic demonstration dataset).
@@ -296,10 +245,10 @@ def load_sample_weather_data(location_name: str = "Pune"):
                 return filtered
         return df
     else:
-        # Fallback inline generation if file was missing
+        # Fallback inline generation if file is missing
         dates = pd.date_range("2024-01-01", "2024-12-31", freq="D")
         np.random.seed(42)
-        precip = [round(np.random.exponential(12.0) if d.month in [6,7,8,9] and np.random.rand() < 0.6 else 0.0, 1) for d in dates]
+        precip = [round(np.random.exponential(12.0) if d.month in [6, 7, 8, 9] and np.random.rand() < 0.6 else 0.0, 1) for d in dates]
         temps = [round(np.random.uniform(25.0, 34.0), 1) for _ in dates]
         humidity = [round(np.random.uniform(55.0, 85.0), 1) for _ in dates]
         return pd.DataFrame({
@@ -349,7 +298,7 @@ def clean_data(df: pd.DataFrame, dataset_type: str = "weather"):
     Cleans and standardizes the dataset:
     - Parses date strings to datetime objects
     - Converts numerical features to numeric datatypes
-    - Identifies and reports missing values
+    - Identifies missing values without silently replacing them with zero
     - Identifies and drops exact duplicate rows
     - Checks for negative values in rainfall or working hours
     - Validates binary delay indicator (0 and 1)
@@ -394,7 +343,7 @@ def clean_data(df: pd.DataFrame, dataset_type: str = "weather"):
                 missing = clean_df[col].isna().sum()
                 if missing > 0:
                     report["missing_values_found"] += int(missing)
-                    report["notes"].append(f"Found {missing} missing values in '{col}'.")
+                    report["notes"].append(f"Identified {missing} missing values in '{col}'.")
                 
                 # Check for invalid negative values (e.g. negative precipitation)
                 if col == "precipitation_sum":
@@ -413,7 +362,7 @@ def clean_data(df: pd.DataFrame, dataset_type: str = "weather"):
                 missing = clean_df[col].isna().sum()
                 if missing > 0:
                     report["missing_values_found"] += int(missing)
-                    report["notes"].append(f"Found {missing} missing values in '{col}'.")
+                    report["notes"].append(f"Identified {missing} missing values in '{col}'.")
         
         # Check negative working hours
         for col in ["planned_hours", "actual_hours"]:
@@ -446,7 +395,8 @@ def clean_data(df: pd.DataFrame, dataset_type: str = "weather"):
 # ------------------------------------------------------------------------------
 def calculate_weather_statistics(weather_df: pd.DataFrame, rainy_threshold: float = 0.0):
     """
-    Computes descriptive statistics for historical weather data.
+    Computes descriptive statistics for historical weather data using Pandas and NumPy.
+    Rainy day is defined as precipitation > rainy_threshold (default > 0.0 mm).
     """
     if weather_df is None or weather_df.empty or "precipitation_sum" not in weather_df.columns:
         return None
@@ -514,272 +464,95 @@ def calculate_delay_statistics(machinery_df: pd.DataFrame):
         "total_hours_lost": total_hours_lost
     }
 
-
-def analyze_weather_delay_relationship(weather_df: pd.DataFrame, machinery_df: pd.DataFrame, rainy_threshold: float = 0.0):
-    """
-    Merges weather and machinery datasets on matching dates and location,
-    and analyzes delay patterns on rainy vs non-rainy operation days.
-    """
-    if weather_df is None or machinery_df is None or weather_df.empty or machinery_df.empty:
-        return None, "Insufficient data for joint analysis."
-
-    # Prepare merge keys
-    w = weather_df.copy()
-    m = machinery_df.copy()
-
-    w["date_str"] = pd.to_datetime(w["date"]).dt.strftime("%Y-%m-%d")
-    m["date_str"] = pd.to_datetime(m["date"]).dt.strftime("%Y-%m-%d")
-
-    # Match on date and, if present in both, location
-    merge_keys = ["date_str"]
-    if "location" in w.columns and "location" in m.columns:
-        # Check if locations overlap
-        w_locs = set(w["location"].dropna().unique())
-        m_locs = set(m["location"].dropna().unique())
-        if len(w_locs.intersection(m_locs)) > 0:
-            merge_keys.append("location")
-
-    merged = pd.merge(m, w, on=merge_keys, how="inner", suffixes=("_machinery", "_weather"))
-
-    if len(merged) < 3:
-        return None, "Fewer than 3 matched operation dates between weather and machinery records."
-
-    # Define rainy day for machinery operation
-    merged["is_rainy"] = merged["precipitation_sum"] > rainy_threshold
-    merged["hours_lost"] = (merged["actual_hours"] - merged["planned_hours"]).clip(lower=0.0)
-
-    rainy_ops = merged[merged["is_rainy"]]
-    dry_ops = merged[~merged["is_rainy"]]
-
-    rainy_total = len(rainy_ops)
-    dry_total = len(dry_ops)
-
-    rainy_delay_rate = (rainy_ops["delayed"] == 1).mean() * 100.0 if rainy_total > 0 else 0.0
-    dry_delay_rate = (dry_ops["delayed"] == 1).mean() * 100.0 if dry_total > 0 else 0.0
-    rate_diff = rainy_delay_rate - dry_delay_rate
-
-    # Calculate Correlation if sample size and variation are sufficient
-    corr_results = {}
-    valid_data = merged.dropna(subset=["precipitation_sum", "hours_lost"])
-    if len(valid_data) >= 8 and valid_data["precipitation_sum"].std() > 0 and valid_data["hours_lost"].std() > 0:
-        pearson_r, pearson_p = stats.pearsonr(valid_data["precipitation_sum"], valid_data["hours_lost"])
-        spearman_rho, spearman_p = stats.spearmanr(valid_data["precipitation_sum"], valid_data["hours_lost"])
-        corr_results = {
-            "sufficient": True,
-            "pearson_r": float(pearson_r),
-            "pearson_p": float(pearson_p),
-            "spearman_rho": float(spearman_rho),
-            "spearman_p": float(spearman_p),
-            "sample_size": len(valid_data)
-        }
-    else:
-        corr_results = {
-            "sufficient": False,
-            "reason": f"Sample size ({len(valid_data)}) is too small or rainfall/hours lost has zero variance."
-        }
-
-    # Hypothesis Testing (Mann-Whitney U Test comparing hours lost on rainy vs non-rainy days)
-    test_results = {}
-    rainy_hours = rainy_ops["hours_lost"].dropna()
-    dry_hours = dry_ops["hours_lost"].dropna()
-
-    if len(rainy_hours) >= 3 and len(dry_hours) >= 3:
-        try:
-            stat_val, p_val = stats.mannwhitneyu(rainy_hours, dry_hours, alternative="two-sided")
-            test_results = {
-                "valid": True,
-                "test_name": "Mann-Whitney U Test",
-                "statistic": float(stat_val),
-                "p_value": float(p_val),
-                "null_hypothesis": "The distribution of machinery delay hours is identical on rainy and non-rainy days.",
-                "significant": p_val < 0.05
-            }
-        except Exception as e:
-            test_results = {"valid": False, "reason": str(e)}
-    else:
-        test_results = {
-            "valid": False,
-            "reason": f"Not enough observations in both groups (Rainy: {len(rainy_hours)}, Dry: {len(dry_hours)})."
-        }
-
-    return {
-        "merged_df": merged,
-        "rainy_total": rainy_total,
-        "dry_total": dry_total,
-        "rainy_delayed": int((rainy_ops["delayed"] == 1).sum()),
-        "dry_delayed": int((dry_ops["delayed"] == 1).sum()),
-        "rainy_delay_rate": rainy_delay_rate,
-        "dry_delay_rate": dry_delay_rate,
-        "rate_difference": rate_diff,
-        "correlation": corr_results,
-        "hypothesis_test": test_results
-    }, None
-
 # ------------------------------------------------------------------------------
-# 6. Chart Creation Functions (Matplotlib & Seaborn)
+# 6. Basic Chart Creation Functions (Matplotlib & Seaborn)
 # ------------------------------------------------------------------------------
-def create_weather_charts(weather_df: pd.DataFrame, merged_analysis: dict = None, rainy_threshold: float = 0.0):
+def create_basic_weather_charts(weather_df: pd.DataFrame, rainy_threshold: float = 0.0):
     """
-    Builds clean, labelled agricultural analytics charts using Matplotlib and Seaborn.
+    Builds clean, labelled agricultural analytics charts using Matplotlib and Seaborn:
+    1. Daily rainfall timeline (Line Chart)
+    2. Monthly rainfall totals (Bar Chart)
+    3. Daily rainfall distribution (Histogram)
     """
     sns.set_theme(style="whitegrid", palette="muted")
     charts = {}
 
-    # Chart 1: Daily Rainfall Over Time
-    if weather_df is not None and not weather_df.empty:
-        fig1, ax1 = plt.subplots(figsize=(10, 4.2))
-        dates = pd.to_datetime(weather_df["date"])
-        precip = weather_df["precipitation_sum"]
+    if weather_df is None or weather_df.empty:
+        return charts
 
-        ax1.plot(dates, precip, color="#2d6a4f", linewidth=1.5, label="Daily Rainfall")
-        ax1.fill_between(dates, precip, color="#74c69d", alpha=0.35)
-        ax1.axhline(rainy_threshold, color="#e76f51", linestyle="--", linewidth=1.2,
-                    label=f"Rainy Day Threshold ({rainy_threshold} mm)")
-        ax1.set_title("Historical Daily Rainfall Over Time", fontsize=13, fontweight="bold", pad=12, color="#1b4332")
-        ax1.set_xlabel("Date", fontsize=10, fontweight="bold")
-        ax1.set_ylabel("Precipitation (mm)", fontsize=10, fontweight="bold")
-        ax1.legend(loc="upper right", frameon=True)
-        fig1.tight_layout()
-        charts["rainfall_timeline"] = fig1
+    # Chart 1: Daily Rainfall Over Time
+    fig1, ax1 = plt.subplots(figsize=(10, 4.2))
+    dates = pd.to_datetime(weather_df["date"])
+    precip = weather_df["precipitation_sum"]
+
+    ax1.plot(dates, precip, color="#2d6a4f", linewidth=1.5, label="Daily Rainfall (mm)")
+    ax1.fill_between(dates, precip, color="#74c69d", alpha=0.35)
+    ax1.axhline(rainy_threshold, color="#e76f51", linestyle="--", linewidth=1.2,
+                label=f"Rainy Day Threshold ({rainy_threshold} mm)")
+    ax1.set_title("Historical Daily Precipitation Over Time", fontsize=13, fontweight="bold", pad=12, color="#1b4332")
+    ax1.set_xlabel("Date", fontsize=10, fontweight="bold")
+    ax1.set_ylabel("Precipitation (mm)", fontsize=10, fontweight="bold")
+    ax1.legend(loc="upper right", frameon=True)
+    fig1.tight_layout()
+    charts["rainfall_timeline"] = fig1
 
     # Chart 2: Rainfall Totals by Month
-    if weather_df is not None and not weather_df.empty:
-        fig2, ax2 = plt.subplots(figsize=(9, 4.2))
-        w_copy = weather_df.copy()
-        w_copy["month_dt"] = pd.to_datetime(w_copy["date"])
-        w_copy["month_name"] = w_copy["month_dt"].dt.strftime("%b")
-        w_copy["month_num"] = w_copy["month_dt"].dt.month
-        monthly = w_copy.groupby(["month_num", "month_name"])["precipitation_sum"].sum().reset_index()
-        monthly = monthly.sort_values("month_num")
+    fig2, ax2 = plt.subplots(figsize=(9, 4.2))
+    w_copy = weather_df.copy()
+    w_copy["month_dt"] = pd.to_datetime(w_copy["date"])
+    w_copy["month_name"] = w_copy["month_dt"].dt.strftime("%b")
+    w_copy["month_num"] = w_copy["month_dt"].dt.month
+    monthly = w_copy.groupby(["month_num", "month_name"])["precipitation_sum"].sum().reset_index()
+    monthly = monthly.sort_values("month_num")
 
-        bars = ax2.bar(monthly["month_name"], monthly["precipitation_sum"], color="#52b788", edgecolor="#2d6a4f")
-        for bar in bars:
-            height = bar.get_height()
-            if height > 0:
-                ax2.annotate(f"{height:.1f}",
-                             xy=(bar.get_x() + bar.get_width() / 2, height),
-                             xytext=(0, 3), textcoords="offset points",
-                             ha="center", va="bottom", fontsize=8, color="#1b4332")
+    bars = ax2.bar(monthly["month_name"], monthly["precipitation_sum"], color="#52b788", edgecolor="#2d6a4f")
+    for bar in bars:
+        height = bar.get_height()
+        if height > 0:
+            ax2.annotate(f"{height:.1f}",
+                         xy=(bar.get_x() + bar.get_width() / 2, height),
+                         xytext=(0, 3), textcoords="offset points",
+                         ha="center", va="bottom", fontsize=8, color="#1b4332")
 
-        ax2.set_title("Monthly Total Precipitation (mm)", fontsize=13, fontweight="bold", pad=12, color="#1b4332")
-        ax2.set_xlabel("Month", fontsize=10, fontweight="bold")
-        ax2.set_ylabel("Total Rainfall (mm)", fontsize=10, fontweight="bold")
-        fig2.tight_layout()
-        charts["monthly_rainfall"] = fig2
+    ax2.set_title("Monthly Total Precipitation (mm)", fontsize=13, fontweight="bold", pad=12, color="#1b4332")
+    ax2.set_xlabel("Month", fontsize=10, fontweight="bold")
+    ax2.set_ylabel("Total Rainfall (mm)", fontsize=10, fontweight="bold")
+    fig2.tight_layout()
+    charts["monthly_rainfall"] = fig2
 
-    # Chart 3: Delay Rate Comparison on Rainy vs Non-Rainy Operation Days
-    if merged_analysis and "rainy_delay_rate" in merged_analysis:
-        fig3, ax3 = plt.subplots(figsize=(7, 4.2))
-        categories = [
-            f"Rainy Days\n(>{rainy_threshold} mm, n={merged_analysis['rainy_total']})",
-            f"Non-Rainy Days\n(≤{rainy_threshold} mm, n={merged_analysis['dry_total']})"
-        ]
-        rates = [merged_analysis["rainy_delay_rate"], merged_analysis["dry_delay_rate"]]
-        colors = ["#e76f51", "#2a9d8f"]
-
-        bars3 = ax3.bar(categories, rates, color=colors, width=0.45, edgecolor="#264653")
-        for bar in bars3:
-            h = bar.get_height()
-            ax3.annotate(f"{h:.1f}%",
-                         xy=(bar.get_x() + bar.get_width() / 2, h),
-                         xytext=(0, 4), textcoords="offset points",
-                         ha="center", va="bottom", fontsize=11, fontweight="bold", color="#1b4332")
-
-        ax3.set_ylim(0, max(rates + [10]) * 1.25)
-        ax3.set_title("Machinery Operation Delay Rate: Rainy vs. Non-Rainy Days", fontsize=13, fontweight="bold", pad=12, color="#1b4332")
-        ax3.set_ylabel("Recorded Delay Rate (%)", fontsize=10, fontweight="bold")
-        fig3.tight_layout()
-        charts["delay_comparison"] = fig3
-
-    # Chart 4: Distribution of Daily Rainfall (Histogram)
-    if weather_df is not None and not weather_df.empty:
-        fig4, ax4 = plt.subplots(figsize=(8, 4.2))
-        precip = weather_df["precipitation_sum"].dropna()
-        # Filter for readable display of rainy distributions
-        sns.histplot(precip, bins=25, color="#40916c", kde=True, ax=ax4, edgecolor="#1b4332")
-        ax4.set_title("Distribution of Daily Precipitation", fontsize=13, fontweight="bold", pad=12, color="#1b4332")
-        ax4.set_xlabel("Daily Precipitation (mm)", fontsize=10, fontweight="bold")
-        ax4.set_ylabel("Frequency (Days)", fontsize=10, fontweight="bold")
-        fig4.tight_layout()
-        charts["rainfall_dist"] = fig4
-
-    # Chart 5: Scatter Plot: Daily Rainfall vs Hours Lost
-    if merged_analysis and "merged_df" in merged_analysis:
-        m_df = merged_analysis["merged_df"]
-        if len(m_df) >= 5 and "hours_lost" in m_df.columns:
-            fig5, ax5 = plt.subplots(figsize=(8, 4.5))
-            sns.regplot(data=m_df, x="precipitation_sum", y="hours_lost", ax=ax5,
-                        color="#2d6a4f",
-                        scatter_kws={"alpha": 0.65, "s": 45, "edgecolor": "#1b4332"},
-                        line_kws={"color": "#e76f51", "linewidth": 2, "label": "Trendline"})
-            ax5.set_title("Daily Rainfall vs. Recorded Machinery Hours Lost", fontsize=13, fontweight="bold", pad=12, color="#1b4332")
-            ax5.set_xlabel("Daily Rainfall on Operation Date (mm)", fontsize=10, fontweight="bold")
-            ax5.set_ylabel("Hours Lost (Actual - Planned, hrs)", fontsize=10, fontweight="bold")
-            ax5.legend(loc="upper left")
-            fig5.tight_layout()
-            charts["scatter_rain_delay"] = fig5
+    # Chart 3: Distribution of Daily Rainfall (Histogram)
+    fig3, ax3 = plt.subplots(figsize=(8, 4.2))
+    precip_clean = weather_df["precipitation_sum"].dropna()
+    sns.histplot(precip_clean, bins=25, color="#40916c", kde=True, ax=ax3, edgecolor="#1b4332")
+    ax3.set_title("Distribution of Daily Precipitation", fontsize=13, fontweight="bold", pad=12, color="#1b4332")
+    ax3.set_xlabel("Daily Precipitation (mm)", fontsize=10, fontweight="bold")
+    ax3.set_ylabel("Frequency (Number of Days)", fontsize=10, fontweight="bold")
+    fig3.tight_layout()
+    charts["rainfall_dist"] = fig3
 
     return charts
 
 # ------------------------------------------------------------------------------
-# 7. Weather-Based Planning Evaluation
-# ------------------------------------------------------------------------------
-def evaluate_planning_day(rain_mm: float, prob_pct: float, operation: str, rain_thresh: float, prob_thresh: float):
-    """
-    Evaluates weather conditions for an upcoming forecast day against operation heuristics.
-    Returns: (category, badge_class, explanation)
-    """
-    guideline = OPERATION_GUIDELINES.get(operation, {})
-    
-    # Severe rainfall trigger
-    if rain_mm > (rain_thresh * 1.8) or prob_pct > (prob_thresh * 1.6):
-        category = "Higher rainfall concern"
-        badge_html = "<span class='badge-higher-concern'>🔴 Higher rainfall concern</span>"
-        explanation = (
-            f"Forecast rainfall ({rain_mm:.1f} mm, {prob_pct:.0f}% probability) significantly exceeds the "
-            f"{operation} threshold ({rain_thresh:.1f} mm). Heavy moisture and wet soil pose high risk of machinery stuck, "
-            f"soil compaction, or chemical wash-off."
-        )
-    # Cautionary trigger
-    elif rain_mm > rain_thresh or prob_pct > prob_thresh:
-        category = "Caution"
-        badge_html = "<span class='badge-caution'>🟡 Caution</span>"
-        explanation = (
-            f"Forecast rainfall ({rain_mm:.1f} mm) or precipitation chance ({prob_pct:.0f}%) is elevated relative to "
-            f"ideal {operation} conditions. Operations may proceed with caution, subject to ground inspection."
-        )
-    # Favorable / Lower concern trigger
-    else:
-        category = "Lower weather concern"
-        badge_html = "<span class='badge-lower-concern'>🟢 Lower weather concern</span>"
-        explanation = (
-            f"Minimal forecast precipitation ({rain_mm:.1f} mm, {prob_pct:.0f}% chance) within acceptable threshold "
-            f"for {operation}. Weather appears generally conducive for scheduling equipment."
-        )
-
-    return category, badge_html, explanation
-
-# ------------------------------------------------------------------------------
-# 8. User Interface Layout & Sidebar Controls
+# 7. User Interface Layout & Sidebar Controls
 # ------------------------------------------------------------------------------
 # Top Header Banner
 st.markdown("""
 <div class="header-banner">
     <h1>🌾 Weather-Based Farm Machinery Planner</h1>
     <p>Analyze weather patterns, understand machinery delays, and plan farm operations more effectively.</p>
-    <div class="badge">S.Y. B.Tech Python Programming Laboratory Capstone Project</div>
+    <div class="badge">S.Y. B.Tech Python Programming Laboratory Capstone Project | Phase 1 (50–60% Milestone)</div>
 </div>
 """, unsafe_allow_html=True)
 
 # Sidebar: Controls and Configuration
 st.sidebar.header("⚙️ Configuration & Filters")
 
-# Location Selection
+# Location Selection (Pune, Nashik, Thane)
 selected_location = st.sidebar.selectbox(
     "📍 Select Location",
     options=list(LOCATIONS.keys()),
     index=0,
-    help="Select an Indian agricultural district to analyze historical weather and forecasts."
+    help="Select an Indian agricultural district to analyze historical weather patterns."
 )
 loc_info = LOCATIONS[selected_location]
 st.sidebar.caption(f"Coordinates: {loc_info['lat']}° N, {loc_info['lon']}° E ({loc_info['state']})")
@@ -792,10 +565,10 @@ weather_source_option = st.sidebar.radio(
     "Weather Data Source",
     options=["Live Open-Meteo API", "Sample Dataset (Offline Demo)"],
     index=0,
-    help="Fetch live daily weather from Open-Meteo API or load the bundled sample dataset."
+    help="Fetch live daily weather from Open-Meteo Historical API or load the bundled sample dataset."
 )
 
-# Date Range Selection (Default: full 2024 calendar year)
+# Date Range Selection (Default: complete 2024 calendar year)
 default_start = datetime.date(2024, 1, 1)
 default_end = datetime.date(2024, 12, 31)
 
@@ -804,7 +577,7 @@ date_range = st.sidebar.date_input(
     value=(default_start, default_end),
     min_value=datetime.date(2020, 1, 1),
     max_value=datetime.date.today(),
-    help="Select the period for historical weather and machinery analysis."
+    help="Select the period for historical weather observations."
 )
 
 if isinstance(date_range, tuple) and len(date_range) == 2:
@@ -814,35 +587,28 @@ else:
     start_date_str = default_start.strftime("%Y-%m-%d")
     end_date_str = default_end.strftime("%Y-%m-%d")
 
-# Farming Operation Filter
+# Farming Operation Selection
 st.sidebar.markdown("---")
-st.sidebar.subheader("🚜 Machinery Operations")
+st.sidebar.subheader("🚜 Farming Operations")
 
 selected_op = st.sidebar.selectbox(
     "Planned Farming Operation",
     options=FARM_OPERATIONS,
     index=0,
-    help="Select an operation to examine tailored planning thresholds and operation delays."
+    help="Select an operation to review baseline requirements and historical delay logs."
 )
 
 filter_machinery_by_op = st.sidebar.checkbox(
-    f"Filter analysis strictly to '{selected_op}'",
+    f"Filter machinery metrics strictly to '{selected_op}'",
     value=False,
-    help="If checked, machinery metrics reflect only the chosen operation instead of all operations."
+    help="If checked, machinery statistics reflect only the chosen operation instead of all operations."
 )
 
-# Rainy Day Threshold
+# Rainy Day Threshold Definition
 st.sidebar.markdown("---")
 st.sidebar.subheader("🌧️ Analytical Parameters")
-rainy_threshold = st.sidebar.number_input(
-    "Rainy Day Definition Threshold (mm)",
-    min_value=0.0,
-    max_value=20.0,
-    value=0.0,
-    step=0.5,
-    help="Precipitation greater than this value is defined as a 'Rainy Day' in the analysis."
-)
-st.sidebar.caption(f"Days with precipitation > {rainy_threshold} mm are classified as Rainy Days.")
+rainy_threshold = 0.0
+st.sidebar.caption(f"Rainy Day Definition: Days with precipitation > {rainy_threshold} mm are classified as Rainy Days.")
 
 # Optional File Uploader for Custom Machinery CSV
 st.sidebar.markdown("---")
@@ -858,19 +624,19 @@ st.sidebar.markdown("---")
 st.sidebar.markdown("""
 <div style='background-color: #f1f5f9; padding: 10px; border-radius: 6px; font-size: 0.8rem; color: #475569;'>
     <b>Academic Project Note:</b><br>
-    Built for S.Y. B.Tech Python Programming Laboratory. Synthetic demo datasets are explicitly marked as synthetic and do not claim to represent specific physical farm surveys.
+    Intermediate submission (Phase 1: 50–60% Completion). Synthetic sample datasets are explicitly marked as demonstration records.
 </div>
 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 9. Data Loading & Cleaning Execution
+# 8. Data Loading & Cleaning Execution
 # ------------------------------------------------------------------------------
 raw_weather_df = None
 weather_fetch_error = None
 is_sample_weather = False
 
 if weather_source_option == "Live Open-Meteo API":
-    with st.spinner(f"Fetching weather records for {selected_location} via Open-Meteo API..."):
+    with st.spinner(f"Fetching historical weather records for {selected_location} via Open-Meteo API..."):
         raw_weather_df, weather_fetch_error = fetch_weather_data(
             latitude=loc_info["lat"],
             longitude=loc_info["lon"],
@@ -912,14 +678,13 @@ if filter_machinery_by_op and not active_machinery_df.empty and "operation" in a
     active_machinery_df = active_machinery_df[active_machinery_df["operation"].str.lower() == selected_op.lower()]
 
 # ------------------------------------------------------------------------------
-# 10. Compute Analytics & Statistics
+# 9. Compute Baseline Statistics
 # ------------------------------------------------------------------------------
 weather_stats = calculate_weather_statistics(clean_weather_df, rainy_threshold=rainy_threshold)
 machinery_stats = calculate_delay_statistics(active_machinery_df)
-merged_analysis, merged_error = analyze_weather_delay_relationship(clean_weather_df, active_machinery_df, rainy_threshold=rainy_threshold)
 
 # ------------------------------------------------------------------------------
-# 11. Main Application Tabs
+# 10. Main Application Tabs
 # ------------------------------------------------------------------------------
 tab1, tab2, tab3 = st.tabs([
     "📊 Dashboard Overview",
@@ -1003,8 +768,8 @@ with tab1:
     if weather_stats:
         summary_parts.append(
             f"Over the selected interval in **{selected_location}**, a total of **{weather_stats['total_records']} daily weather observations** "
-            f"were recorded with cumulative rainfall reaching **{weather_stats['total_rain']:.1f} mm**. "
-            f"Rainfall was detected on **{weather_stats['rainy_days_count']} days ({weather_stats['rainy_days_pct']:.1f}%)**, "
+            f"were loaded with cumulative rainfall reaching **{weather_stats['total_rain']:.1f} mm**. "
+            f"Rainfall (> {rainy_threshold} mm) was recorded on **{weather_stats['rainy_days_count']} days ({weather_stats['rainy_days_pct']:.1f}%)**, "
             f"yielding a daily mean of **{weather_stats['mean_rain']:.1f} mm** and a peak daily event of **{weather_stats['max_rain']:.1f} mm**."
         )
     else:
@@ -1014,11 +779,11 @@ with tab1:
         op_scope = f"specifically for {selected_op}" if filter_machinery_by_op else "across all logged operations"
         summary_parts.append(
             f"From the machinery operation dataset ({op_scope}), **{machinery_stats['total_operations']} operations** were logged. "
-            f"The historical delay rate was **{machinery_stats['delay_rate']:.1f}%** ({machinery_stats['delayed_operations']} delayed), "
+            f"The recorded delay rate was **{machinery_stats['delay_rate']:.1f}%** ({machinery_stats['delayed_operations']} delayed operations), "
             f"representing a cumulative **{machinery_stats['total_hours_lost']:.1f} operating hours lost** compared to planned schedules."
         )
     else:
-        summary_parts.append("Machinery operational records are not available to determine delay statistics.")
+        summary_parts.append("Machinery operational records are not available to calculate delay statistics.")
 
     st.markdown(f"""
     <div class="academic-callout">
@@ -1052,16 +817,16 @@ with tab1:
                     st.caption(f"• {note}")
 
     # Data Preview Tables
-    with st.expander("🔍 View Cleaned Raw Data Tables", expanded=False):
+    with st.expander("🔍 View Cleaned Weather & Machinery Tables", expanded=False):
         t1, t2 = st.columns(2)
         with t1:
-            st.markdown("**Cleaned Weather Data (Top 10 Rows)**")
+            st.markdown("**Cleaned Weather Data (First 10 Rows)**")
             if clean_weather_df is not None and not clean_weather_df.empty:
                 st.dataframe(clean_weather_df.head(10), use_container_width=True)
             else:
                 st.write("No weather data available.")
         with t2:
-            st.markdown("**Cleaned Machinery Operations Data (Top 10 Rows)**")
+            st.markdown("**Cleaned Machinery Operations Data (First 10 Rows)**")
             if active_machinery_df is not None and not active_machinery_df.empty:
                 st.dataframe(active_machinery_df.head(10), use_container_width=True)
             else:
@@ -1071,9 +836,9 @@ with tab1:
 # TAB 2: HISTORICAL DATA ANALYSIS
 # ==============================================================================
 with tab2:
-    st.subheader("Statistical Analysis & Data Visualizations")
+    st.subheader("Historical Weather & Machinery Analysis (Phase 1)")
 
-    # Section A: Descriptive Statistics
+    # Section A: Descriptive Weather Statistics
     st.markdown("### A. Descriptive Weather Statistics")
     if weather_stats:
         d_col1, d_col2, d_col3 = st.columns(3)
@@ -1115,79 +880,17 @@ with tab2:
 
     st.markdown("---")
 
-    # Section C: Weather and Machinery Delays (Merged Analysis)
-    st.markdown("### C. Relationship Between Rainfall and Machinery Delays")
-    if merged_analysis:
-        r1, r2, r3 = st.columns(3)
-        with r1:
-            st.metric("Rainy Days Delay Rate", f"{merged_analysis['rainy_delay_rate']:.1f}%",
-                      f"{merged_analysis['rainy_delayed']} of {merged_analysis['rainy_total']} ops")
-        with r2:
-            st.metric("Non-Rainy Days Delay Rate", f"{merged_analysis['dry_delay_rate']:.1f}%",
-                      f"{merged_analysis['dry_delayed']} of {merged_analysis['dry_total']} ops")
-        with r3:
-            diff_color = "normal" if merged_analysis['rate_difference'] <= 0 else "inverse"
-            st.metric("Delay Rate Difference", f"{merged_analysis['rate_difference']:+.1f}% pts")
-
-        # Correlation Analysis
-        st.markdown("#### 🔗 Correlation Analysis")
-        corr = merged_analysis["correlation"]
-        if corr.get("sufficient"):
-            c_a, c_b = st.columns(2)
-            with c_a:
-                st.markdown(f"**Pearson Correlation ($r$):** `{corr['pearson_r']:.3f}` (p-value: `{corr['pearson_p']:.4f}`)")
-                st.caption("Measures linear association between rainfall (mm) and hours lost.")
-            with c_b:
-                st.markdown(f"**Spearman Rank Correlation ($\\rho$):** `{corr['spearman_rho']:.3f}` (p-value: `{corr['spearman_p']:.4f}`)")
-                st.caption("Measures monotonic association, robust against skewness and outliers.")
-        else:
-            st.warning(f"⚠️ Correlation Warning: {corr.get('reason')}")
-
-        # Scientific Caution Notice (Correlation != Causation)
-        st.markdown("""
-        <div class="disclaimer-callout">
-            <b>⚠️ Academic & Analytical Disclaimer:</b> Correlation does not imply causation. 
-            While operations conducted on rainy days exhibit a higher recorded delay rate in this dataset, 
-            delays may also arise from mechanical breakdowns, operator shortage, soil texture variations, 
-            or supply chain issues. Weather is a contributing risk factor, not the sole cause.
-        </div>
-        """, unsafe_allow_html=True)
-
-        # Section D: Basic Statistical Hypothesis Test (SciPy)
-        st.markdown("### D. Statistical Hypothesis Test (SciPy)")
-        ht = merged_analysis["hypothesis_test"]
-        if ht.get("valid"):
-            st.write(f"**Test Conducted:** {ht['test_name']}")
-            st.markdown(f"- **Null Hypothesis ($H_0$):** {ht['null_hypothesis']}")
-            st.markdown(f"- **Alternative Hypothesis ($H_1$):** Machinery operations on rainy days incur significantly higher delay hours than on non-rainy days.")
-            st.markdown(f"- **Test Statistic (U):** `{ht['statistic']:.2f}`")
-            st.markdown(f"- **p-value:** `{ht['p_value']:.4f}`")
-            
-            if ht["significant"]:
-                st.success(f"✅ **Statistical Result:** The p-value ({ht['p_value']:.4f}) is less than the standard significance threshold ($\\alpha = 0.05$). "
-                           "We reject the null hypothesis: in this dataset, machinery delay hours are significantly different between rainy and non-rainy days.")
-            else:
-                st.info(f"ℹ️ **Statistical Result:** The p-value ({ht['p_value']:.4f}) is greater than or equal to $\\alpha = 0.05$. "
-                        "There is insufficient statistical evidence to reject the null hypothesis at the 5% significance level.")
-        else:
-            st.info(f"Hypothesis test skipped: {ht.get('reason')}")
-
-    else:
-        st.warning(f"Merged analysis could not be calculated: {merged_error}")
-
-    st.markdown("---")
-
-    # Section E: Visualizations
-    st.markdown("### E. Data Visualizations (Matplotlib & Seaborn)")
-    charts = create_weather_charts(clean_weather_df, merged_analysis, rainy_threshold=rainy_threshold)
+    # Section C: Basic Visualizations (Matplotlib & Seaborn)
+    st.markdown("### C. Statistical Data Visualizations")
+    charts = create_basic_weather_charts(clean_weather_df, rainy_threshold=rainy_threshold)
 
     # 1. Line chart: Daily rainfall over time
     if "rainfall_timeline" in charts:
         st.pyplot(charts["rainfall_timeline"])
         st.markdown("""
         <div class="chart-insight-box">
-            <b>Chart 1 Insight:</b> Displays the historical chronology of daily precipitation. 
-            Notice the concentrated spike during the monsoon season (June to September), contrasting with the prolonged dry winter and summer months.
+            <b>Chart 1 Insight:</b> Historical chronology of daily precipitation. 
+            Highlights high-intensity precipitation peaks during monsoon months, contrasting with prolonged dry periods.
         </div>
         """, unsafe_allow_html=True)
 
@@ -1196,191 +899,146 @@ with tab2:
         st.pyplot(charts["monthly_rainfall"])
         st.markdown("""
         <div class="chart-insight-box">
-            <b>Chart 2 Insight:</b> Aggregates cumulative precipitation per calendar month. 
-            Agricultural operations such as Kharif sowing and spraying coincide with peak rainfall months, elevating operational machinery scheduling risks.
+            <b>Chart 2 Insight:</b> Monthly cumulative precipitation totals. 
+            Peak rainfall months coincide with critical Kharif tillage and sowing operations, driving potential machinery delays.
         </div>
         """, unsafe_allow_html=True)
 
-    # 3. Bar chart: Delay rates on rainy vs non-rainy days
-    if "delay_comparison" in charts:
-        st.pyplot(charts["delay_comparison"])
-        st.markdown("""
-        <div class="chart-insight-box">
-            <b>Chart 3 Insight:</b> Direct comparison of the proportion of delayed machinery operations on rainy vs non-rainy days. 
-            Demonstrates how wet conditions correlate with increased likelihood of operational rescheduling or field stoppage.
-        </div>
-        """, unsafe_allow_html=True)
-
-    # 4. Histogram: Distribution of daily rainfall
+    # 3. Histogram: Distribution of daily rainfall
     if "rainfall_dist" in charts:
         st.pyplot(charts["rainfall_dist"])
         st.markdown("""
         <div class="chart-insight-box">
-            <b>Chart 4 Insight:</b> Frequency distribution of daily precipitation values. 
-            The distribution is typically right-skewed, with most days recording zero or light rainfall and a few high-intensity rainfall events.
+            <b>Chart 3 Insight:</b> Frequency distribution of daily precipitation values. 
+            Shows strong positive skewness, with the majority of days recording dry or light precipitation and a smaller tail of extreme downpours.
         </div>
         """, unsafe_allow_html=True)
 
-    # 5. Scatter plot: Daily rainfall vs hours lost
-    if "scatter_rain_delay" in charts:
-        st.pyplot(charts["scatter_rain_delay"])
-        st.markdown("""
-        <div class="chart-insight-box">
-            <b>Chart 5 Insight:</b> Scatter distribution with regression trendline plotting daily rainfall against recorded lost operating hours. 
-            Points higher on the vertical axis reflect greater schedule disruption on wet field days.
-        </div>
-        """, unsafe_allow_html=True)
+    st.markdown("---")
 
-# ==============================================================================
-# TAB 3: WEATHER-BASED PLANNING SECTION
-# ==============================================================================
-with tab3:
-    st.subheader(f"Upcoming Weather-Based Planning Aid — {selected_location}")
+    # Section D: Phase 2 Roadmap & Deferred Features Preview
     st.markdown("""
-    This section evaluates upcoming daily forecasts against operational thresholds to provide an initial 
-    scheduling guideline for farm machinery.
-    """)
-
-    # Operation Guidelines Display
-    op_guide = OPERATION_GUIDELINES.get(selected_op, {})
-    st.markdown(f"""
-    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px;">
-        <h4 style="margin: 0 0 6px 0; color: #1b4332;">🚜 Selected Operation: {selected_op}</h4>
-        <p style="margin: 0 0 6px 0; font-size: 0.95rem; color: #334155;">{op_guide.get('description', '')}</p>
-        <span style="font-size: 0.85rem; color: #475569;"><b>Typical Machine:</b> {op_guide.get('machine', '')} | <b>Sensitivity:</b> {op_guide.get('guidance', '')}</span>
+    <div class="phase2-callout">
+        <h4 style="margin: 0 0 8px 0; color: #1e3a8a;">🔬 Advanced Delay Modeling & Inferential Statistics (Phase 2 Preview)</h4>
+        <p style="margin: 0 0 10px 0; font-size: 0.93rem; color: #334155;">
+            In accordance with the <b>Phase 1 milestone (50–60% Completion)</b>, baseline data ingestion, data cleaning, 
+            and descriptive statistics have been fully validated. The following advanced inferential and predictive analyses 
+            are scheduled for implementation in <b>Phase 2</b>:
+        </p>
+        <ul style="margin: 0 0 10px 20px; font-size: 0.9rem; color: #475569; line-height: 1.6;">
+            <li><b>Merged Weather-Delay Cross Analysis:</b> Direct comparison of operational delay rates between rainy and non-rainy operation days.</li>
+            <li><b>Correlation Analysis:</b> Calculation of Pearson ($r$) and Spearman ($\rho$) correlation coefficients between daily rainfall and hours lost.</li>
+            <li><b>Hypothesis Testing:</b> Non-parametric SciPy statistical testing (Mann-Whitney $U$ test) with null hypothesis and $p$-value interpretation.</li>
+            <li><b>Rainfall-versus-Delay Scatter Modeling:</b> Regression scatter plots mapping daily precipitation against lost operational hours.</li>
+        </ul>
+        <span style="font-size: 0.85rem; color: #64748b; font-style: italic;">
+            Note: Advanced statistical tests are intentionally scheduled for Phase 2 to ensure thorough data validation and baseline descriptive analysis first.
+        </span>
     </div>
     """, unsafe_allow_html=True)
 
-    # Configurable Planning Sensitivity Thresholds
-    with st.expander("⚙️ Customize Planning Heuristic Thresholds", expanded=False):
-        p_col1, p_col2 = st.columns(2)
-        with p_col1:
-            cfg_rain_thresh = st.slider(
-                f"Rainfall Concern Threshold for {selected_op} (mm)",
-                min_value=0.2,
-                max_value=25.0,
-                value=float(op_guide.get("recommended_max_rain", 5.0)),
-                step=0.5,
-                help="Forecast daily rainfall exceeding this threshold triggers a cautionary or higher concern indicator."
-            )
-        with p_col2:
-            cfg_prob_thresh = st.slider(
-                f"Precipitation Probability Concern Threshold (%)",
-                min_value=10.0,
-                max_value=90.0,
-                value=float(op_guide.get("recommended_max_prob", 40.0)),
-                step=5.0,
-                help="Forecast precipitation probability exceeding this percentage triggers caution."
-            )
-        st.caption("Note: These thresholds are demonstration heuristics for student scheduling simulation, not agronomic safety standards.")
+# ==============================================================================
+# TAB 3: WEATHER-BASED PLANNING SECTION (PHASE 2 PREVIEW)
+# ==============================================================================
+with tab3:
+    st.subheader(f"Weather-Based Operational Planning (Phase 2 Preview) — {selected_location}")
 
-    # Fetch 7-Day Live Forecast from Open-Meteo
-    with st.spinner("Fetching 7-day live weather forecast..."):
-        forecast_df, forecast_err = fetch_forecast_data(latitude=loc_info["lat"], longitude=loc_info["lon"])
+    # Professional Phase 2 Planning Notice
+    st.markdown("""
+    <div class="phase2-callout">
+        <h4 style="margin: 0 0 6px 0; color: #1e3a8a;">🗓️ Operational Decision-Support System Roadmap</h4>
+        <p style="margin: 0 0 8px 0; font-size: 0.95rem; color: #1e293b;">
+            <b>Advanced weather-based planning and delay analysis will be implemented in Phase 2.</b>
+        </p>
+        <p style="margin: 0; font-size: 0.9rem; color: #475569;">
+            Phase 1 provides the foundational descriptive benchmarks and data pipelines. Phase 2 will introduce live numerical forecast integration 
+            and operational risk matrices to generate forward-looking machinery schedules.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
-    if forecast_df is None:
-        st.warning(f"⚠️ Live forecast could not be retrieved ({forecast_err}). Generating demo forecast schedule.")
-        # Fallback 7-day demonstration forecast
-        f_dates = pd.date_range(datetime.date.today(), periods=7, freq="D")
-        forecast_df = pd.DataFrame({
-            "date": f_dates.strftime("%Y-%m-%d"),
-            "precipitation_sum": [0.0, 0.4, 3.2, 14.5, 0.0, 0.0, 1.2],
-            "precipitation_probability_max": [10, 25, 60, 85, 15, 20, 40],
-            "temperature_2m_max": [29.5, 30.1, 28.0, 26.5, 29.0, 31.0, 30.5]
-        })
+    # Architectural Blueprint for Selected Operation
+    op_guide = OPERATION_GUIDELINES.get(selected_op, {})
+    st.markdown(f"#### 🚜 Target Operation Profile: {selected_op}")
 
-    # Evaluate Each Forecast Day
-    evaluated_records = []
-    for _, row in forecast_df.iterrows():
-        d_val = row["date"]
-        r_val = float(row.get("precipitation_sum", 0.0))
-        p_val = float(row.get("precipitation_probability_max", 0.0))
-        t_val = float(row.get("temperature_2m_max", 28.0))
-
-        cat, badge, expl = evaluate_planning_day(
-            rain_mm=r_val,
-            prob_pct=p_val,
-            operation=selected_op,
-            rain_thresh=cfg_rain_thresh,
-            prob_thresh=cfg_prob_thresh
-        )
-        evaluated_records.append({
-            "date": d_val,
-            "rain_mm": r_val,
-            "prob_pct": p_val,
-            "temp_max": t_val,
-            "category": cat,
-            "badge_html": badge,
-            "explanation": expl
-        })
-
-    eval_df = pd.DataFrame(evaluated_records)
-
-    # Display Daily Forecast Cards
-    st.markdown("#### 📅 Upcoming 7-Day Operation Schedule Assessment")
-
-    f_cols = st.columns(len(eval_df))
-    for i, col in enumerate(f_cols):
-        day_row = eval_df.iloc[i]
-        d_obj = pd.to_datetime(day_row["date"])
-        day_name = d_obj.strftime("%a, %b %d")
-
-        with col:
-            st.markdown(f"""
-            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 10px; text-align: center; height: 230px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                <div style="font-weight: 700; font-size: 0.9rem; color: #1b4332;">{day_name}</div>
-                <div style="font-size: 1.2rem; font-weight: 700; margin: 8px 0 4px 0; color: #2d6a4f;">{day_row['rain_mm']:.1f} mm</div>
-                <div style="font-size: 0.8rem; color: #64748b;">Chance: {day_row['prob_pct']:.0f}%</div>
-                <div style="font-size: 0.8rem; color: #64748b;">Max: {day_row['temp_max']:.1f}°C</div>
-                <div style="margin-top: 10px;">{day_row['badge_html']}</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-    # Detailed Schedule Table with Reasoning
-    st.markdown("#### 📋 Detailed Day-by-Day Advisory")
-    for _, item in eval_df.iterrows():
-        d_formatted = pd.to_datetime(item["date"]).strftime("%A, %d %B %Y")
+    p_col1, p_col2 = st.columns([3, 2])
+    with p_col1:
         st.markdown(f"""
-        - **{d_formatted}** — Forecast: **{item['rain_mm']:.1f} mm** rainfall ({item['prob_pct']:.0f}% probability) | Max Temp: **{item['temp_max']:.1f}°C**  
-          {item['badge_html']}  
-          <span style="font-size: 0.9rem; color: #334155;">{item['explanation']}</span>
+        <div style="background-color: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);">
+            <h5 style="margin: 0 0 8px 0; color: #1b4332;">Agronomic & Machinery Specifications</h5>
+            <p style="margin: 0 0 10px 0; font-size: 0.92rem; color: #334155;">{op_guide.get('description', '')}</p>
+            <ul style="margin: 0; padding-left: 20px; font-size: 0.88rem; color: #475569; line-height: 1.6;">
+                <li><b>Typical Equipment:</b> {op_guide.get('machine', '')}</li>
+                <li><b>Operational Sensitivity:</b> {op_guide.get('guidance', '')}</li>
+                <li><b>Planned Maximum Rainfall Tolerance:</b> <code>≤ {op_guide.get('recommended_max_rain', 5.0)} mm</code></li>
+            </ul>
+        </div>
         """, unsafe_allow_html=True)
 
-    # Suggested Planning Window Summary
-    favorable_days = eval_df[eval_df["category"] == "Lower weather concern"]
-    st.markdown("#### 💡 Planning Recommendation Window")
-    if not favorable_days.empty:
-        fav_dates = [pd.to_datetime(d).strftime("%b %d (%a)") for d in favorable_days["date"]]
-        st.success(
-            f"**Consider reviewing these comparatively dry dates for {selected_op}:** {', '.join(fav_dates)}. "
-            "These dates have minimal forecast precipitation, reducing the risk of machinery slippage or chemical wash-off."
-        )
-    else:
-        st.warning(
-            f"All upcoming forecast dates exceed or approach the concern thresholds for **{selected_op}**. "
-            "Consider rescheduling intensive field operations or verifying drainage capabilities before deployment."
-        )
+    with p_col2:
+        st.markdown("""
+        <div style="background-color: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);">
+            <h5 style="margin: 0 0 8px 0; color: #1b4332;">Planned Decision Indicators</h5>
+            <div style="margin-bottom: 8px;">
+                <span style="background-color: #d1fae5; color: #065f46; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">🟢 Lower weather concern</span>
+                <span style="font-size: 0.8rem; color: #475569;"> — Conducive field conditions</span>
+            </div>
+            <div style="margin-bottom: 8px;">
+                <span style="background-color: #fef3c7; color: #92400e; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">🟡 Caution</span>
+                <span style="font-size: 0.8rem; color: #475569;"> — Marginal moisture / ground check required</span>
+            </div>
+            <div>
+                <span style="background-color: #fee2e2; color: #991b1b; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">🔴 Higher rainfall concern</span>
+                <span style="font-size: 0.8rem; color: #475569;"> — Wet soil / high immobilization risk</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    # Mandatory Academic & Agronomic Disclaimers
+    # Phase 2 Implementation Framework Table
+    st.markdown("#### 📋 Phase 2 Implementation Framework")
+    framework_data = pd.DataFrame([
+        {
+            "Module": "Live Forecast Ingestion",
+            "Target Feature": "Open-Meteo 7-day numerical weather forecast integration",
+            "Status": "Scheduled for Phase 2"
+        },
+        {
+            "Module": "Dynamic Heuristics Engine",
+            "Target Feature": "Operation-specific precipitation and probability threshold evaluation",
+            "Status": "Scheduled for Phase 2"
+        },
+        {
+            "Module": "Automated Advisory Matrix",
+            "Target Feature": "Day-by-day scheduling recommendations and dry window detection",
+            "Status": "Scheduled for Phase 2"
+        },
+        {
+            "Module": "Soil Trafficability Integration",
+            "Target Feature": "Field inspection guidelines and drainage check advisories",
+            "Status": "Scheduled for Phase 2"
+        }
+    ])
+    st.table(framework_data)
+
+    # Disclaimers
     st.markdown("""
     <div class="disclaimer-callout">
-        <b>⚠️ Agronomic Limitations & Field Trafficability Disclaimer:</b><br>
-        1. <b>Heuristic Threshold:</b> The configured thresholds are simple planning heuristics, not guaranteed agronomic safety limits.<br>
-        2. <b>Direct Soil Moisture:</b> Precipitation forecasts alone do not measure actual root-zone soil saturation, clay plasticity, or machine tire load-bearing capacity.<br>
-        3. <b>Check Field Conditions:</b> Always check actual physical soil trafficability and local field conditions before deploying tractors or heavy farm machinery.<br>
-        4. <b>Weather Model Uncertainty:</b> Public weather forecast models are subject to meteorological uncertainties and local microclimate variations.
+        <b>⚠️ Agronomic Limitations & Field Trafficability Notice:</b><br>
+        Precipitation forecasts and threshold heuristics represent planning aids, not guaranteed agronomic safety limits. 
+        Rainfall alone does not directly measure root-zone soil saturation or load-bearing trafficability. 
+        Physical on-site inspection must always precede heavy machinery deployment.
     </div>
     """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 12. Application Footer & Data Source Limitations
+# 11. Application Footer & Data Source Transparency
 # ------------------------------------------------------------------------------
 st.markdown("---")
 st.markdown("""
 <div style="font-size: 0.85rem; color: #64748b; line-height: 1.5;">
-    <b>Weather-Based Farm Machinery Planner</b> | S.Y. B.Tech Python Programming Laboratory Capstone Project<br>
-    <b>Weather Data Provider:</b> Open-Meteo Historical & Forecast APIs (Non-commercial open-access).<br>
+    <b>Weather-Based Farm Machinery Planner</b> | S.Y. B.Tech Python Programming Laboratory Capstone Project (Phase 1: 50–60% Completion)<br>
+    <b>Weather Data Provider:</b> Open-Meteo Historical Archive API (Non-commercial open-access).<br>
     <b>Machinery Operations:</b> Demonstration dataset with explicitly synthetic records for student laboratory analysis.<br>
-    <b>Statistical Stack:</b> Pandas, NumPy, Matplotlib, Seaborn, SciPy.
+    <b>Phase 1 Technology Stack:</b> Streamlit, Pandas, NumPy, Matplotlib, Seaborn, Requests.
 </div>
 """, unsafe_allow_html=True)
