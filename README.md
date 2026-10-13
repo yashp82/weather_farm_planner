@@ -164,7 +164,14 @@ The application will launch in your browser at:
 
 ---
 
-## 7. 🗺️ Phase 2 Roadmap (Deferred Advanced Features)
+## 7. Current System Limitations (Phase 1)
+1. **Descriptive Scope Only:** Phase 1 focuses strictly on baseline descriptive statistics and data cleaning. It does not perform inferential hypothesis testing or multi-variable regression.
+2. **Historical Focus:** Phase 1 analyzes historical weather archives; upcoming 7-day numerical forecast ingestion is scheduled for Phase 2.
+3. **No Direct Soil Sensing:** Rainfall serves as an observational proxy. The system does not measure direct soil cone bearing capacity or volumetric soil water content.
+
+---
+
+## 8. 🗺️ Phase 2 Roadmap (Deferred Advanced Features)
 
 | Feature / Module | Purpose in Phase 2 | Planned Implementation |
 | :--- | :--- | :--- |
@@ -177,7 +184,7 @@ The application will launch in your browser at:
 
 ---
 
-## 8. 🤝 GitHub Collaboration Workflow (For Team Members)
+## 9. 🤝 GitHub Collaboration Workflow (For Team Members)
 
 ### Step 1: Clone the Repository to Your Local Machine
 Each teammate runs:
