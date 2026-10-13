@@ -174,3 +174,35 @@ The application will launch in your browser at:
 | **Delay Scatter & Trendline Plot** | Visualize relationship between rainfall intensity and lost operating hours | Seaborn regression scatter plot |
 | **7-Day Live Weather Forecast** | Ingest numerical precipitation forecasts and probabilities | Open-Meteo Forecast API client |
 | **Dynamic Operational Planning Matrix** | Evaluate operation-specific rainfall tolerance heuristics | Interactive heuristic risk evaluation engine |
+
+---
+
+## 8. 🤝 GitHub Collaboration Workflow (For Team Members)
+
+### Step 1: Clone the Repository to Your Local Machine
+Each teammate runs:
+```bash
+git clone https://github.com/yashp82/weather_farm_planner.git
+cd weather_farm_planner
+```
+
+### Step 2: Set Up Environment & Install Dependencies
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+### Step 3: Edit Your Assigned File
+- **Member 1:** Edit `data_pipeline.py` (API data ingestion, cleaning rules).
+- **Member 2:** Edit `analytics.py` (Descriptive statistics formulas, Matplotlib/Seaborn charts).
+- **Member 3:** Edit `app.py` (Streamlit dashboard UI, layouts, tabs).
+
+### Step 4: Push Changes Back to GitHub
+```bash
+git pull origin main
+git add .
+git commit -m "Updated <your module name> feature"
+git push origin main
+```
+
