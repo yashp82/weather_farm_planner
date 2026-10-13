@@ -1,16 +1,14 @@
 """
 ================================================================================
-PART 2: STATISTICAL ANALYTICS & DATA VISUALIZATION ENGINE
+PART 2: STATISTICAL ANALYTICS, CHARTS & HISTORICAL ANALYSIS (TAB 2)
 ================================================================================
-Team Member 2 Responsibility:
-- Descriptive weather statistics computation (mean, median, max, std dev, total)
-- Rainy day classification logic (daily precipitation > 0.0 mm)
-- Machinery operational metrics (delay rate %, planned vs actual hours)
-- Schedule variance analysis (hours lost = max(0, actual - planned))
-- Publication-quality visualizations using Matplotlib and Seaborn:
-    1. Daily Precipitation Timeline (Line Chart)
-    2. Monthly Total Precipitation (Bar Chart)
-    3. Daily Precipitation Distribution (Histogram with KDE)
+Author / Owner: Team Member 2
+Responsibilities:
+1. Weather descriptive statistics calculation (mean, median, max, std dev, total)
+2. Machinery operational delay analysis (delay rate %, planned vs actual hours)
+3. Schedule variance analysis (hours lost = max(0, actual - planned))
+4. Matplotlib & Seaborn charting engine (Timeline, Monthly Totals, Histogram)
+5. Rendering Tab 2: Historical Data Analysis UI & Phase 2 Roadmap
 ================================================================================
 """
 
@@ -18,6 +16,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import streamlit as st
+
 
 # ------------------------------------------------------------------------------
 # 1. Weather Descriptive Statistics Computation
@@ -175,3 +175,114 @@ def create_basic_weather_charts(weather_df: pd.DataFrame, rainy_threshold: float
     charts["rainfall_dist"] = fig3
 
     return charts
+
+
+# ------------------------------------------------------------------------------
+# 4. Render Tab 2: Historical Data Analysis (UI Component owned by Member 2)
+# ------------------------------------------------------------------------------
+def render_tab2_analysis(clean_weather_df, active_machinery_df, weather_stats, machinery_stats, rainy_threshold=0.0):
+    """
+    [Member 2] Assembles and renders Tab 2: Historical Data Analysis.
+    Displays descriptive statistics, delay breakdown, Matplotlib/Seaborn charts,
+    and Phase 2 inferential modeling roadmap.
+    """
+    st.subheader("Historical Weather & Machinery Analysis (Phase 1)")
+
+    # Section A: Descriptive Weather Statistics
+    st.markdown("### A. Descriptive Weather Statistics")
+    if weather_stats:
+        d_col1, d_col2, d_col3 = st.columns(3)
+        with d_col1:
+            st.markdown(f"**Mean Daily Rainfall:** `{weather_stats['mean_rain']:.2f} mm`")
+            st.markdown(f"**Median Daily Rainfall:** `{weather_stats['median_rain']:.2f} mm`")
+        with d_col2:
+            st.markdown(f"**Maximum Daily Rainfall:** `{weather_stats['max_rain']:.2f} mm`")
+            st.markdown(f"**Standard Deviation ($\\sigma$):** `{weather_stats['std_rain']:.2f} mm`")
+        with d_col3:
+            st.markdown(f"**Total Cumulative Rainfall:** `{weather_stats['total_rain']:.1f} mm`")
+            st.markdown(f"**Rainy Days ($>{rainy_threshold}$ mm):** `{weather_stats['rainy_days_count']} ({weather_stats['rainy_days_pct']:.1f}%)`")
+        st.caption(f"*Rainy day definition: Daily precipitation > {rainy_threshold} mm.*")
+    else:
+        st.warning("Weather statistics are unavailable because valid weather data has not been loaded.")
+
+    st.markdown("---")
+
+    # Section B: Machinery Delay Analysis
+    st.markdown("### B. Machinery Operation Delay Analysis")
+    if machinery_stats:
+        m_col1, m_col2, m_col3 = st.columns(3)
+        with m_col1:
+            st.markdown(f"**Total Operations Logged:** `{machinery_stats['total_operations']}`")
+            st.markdown(f"**Delayed Operations:** `{machinery_stats['delayed_operations']}`")
+            st.markdown(f"**Overall Delay Rate:** `{machinery_stats['delay_rate']:.1f}%`")
+        with m_col2:
+            st.markdown(f"**Avg Planned Duration:** `{machinery_stats['avg_planned_hours']:.1f} hours`")
+            st.markdown(f"**Avg Actual Duration:** `{machinery_stats['avg_actual_hours']:.1f} hours`")
+            st.markdown(f"**Total Recorded Hours Lost:** `{machinery_stats['total_hours_lost']:.1f} hours`")
+        with m_col3:
+            st.markdown("**Delay Reasons Breakdown:**")
+            if "delay_reason" in active_machinery_df.columns:
+                reasons = active_machinery_df["delay_reason"].value_counts()
+                for r_name, r_cnt in reasons.items():
+                    st.write(f"- *{r_name.capitalize()}*: {r_cnt}")
+    else:
+        st.info("No machinery operational records loaded.")
+
+    st.markdown("---")
+
+    # Section C: Statistical Data Visualizations
+    st.markdown("### C. Statistical Data Visualizations")
+    charts = create_basic_weather_charts(clean_weather_df, rainy_threshold=rainy_threshold)
+
+    # Chart 1: Line Chart
+    if "rainfall_timeline" in charts:
+        st.pyplot(charts["rainfall_timeline"])
+        st.markdown("""
+        <div class="chart-insight-box">
+            <b>Chart 1 Insight:</b> Historical chronology of daily precipitation. 
+            Highlights high-intensity precipitation peaks during monsoon months, contrasting with prolonged dry periods.
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Chart 2: Bar Chart
+    if "monthly_rainfall" in charts:
+        st.pyplot(charts["monthly_rainfall"])
+        st.markdown("""
+        <div class="chart-insight-box">
+            <b>Chart 2 Insight:</b> Monthly cumulative precipitation totals. 
+            Peak rainfall months coincide with critical Kharif tillage and sowing operations, driving potential machinery delays.
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Chart 3: Histogram with KDE
+    if "rainfall_dist" in charts:
+        st.pyplot(charts["rainfall_dist"])
+        st.markdown("""
+        <div class="chart-insight-box">
+            <b>Chart 3 Insight:</b> Frequency distribution of daily precipitation values. 
+            Shows strong positive skewness, with the majority of days recording dry or light precipitation and a smaller tail of extreme downpours.
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # Section D: Phase 2 Inferential Modeling Roadmap
+    st.markdown("""
+    <div class="phase2-callout">
+        <h4 style="margin: 0 0 8px 0; color: #1e3a8a;">🔬 Advanced Delay Modeling & Inferential Statistics (Phase 2 Preview)</h4>
+        <p style="margin: 0 0 10px 0; font-size: 0.93rem; color: #334155;">
+            In accordance with the <b>Phase 1 milestone (50–60% Completion)</b>, baseline data ingestion, data cleaning, 
+            and descriptive statistics have been fully validated. The following advanced inferential and predictive analyses 
+            are scheduled for implementation in <b>Phase 2</b>:
+        </p>
+        <ul style="margin: 0 0 10px 20px; font-size: 0.9rem; color: #475569; line-height: 1.6;">
+            <li><b>Merged Weather-Delay Cross Analysis:</b> Direct comparison of operational delay rates between rainy and non-rainy operation days.</li>
+            <li><b>Correlation Analysis:</b> Calculation of Pearson ($r$) and Spearman ($\rho$) correlation coefficients between daily rainfall and hours lost.</li>
+            <li><b>Hypothesis Testing:</b> Non-parametric SciPy statistical testing (Mann-Whitney $U$ test) with null hypothesis and $p$-value interpretation.</li>
+            <li><b>Rainfall-versus-Delay Scatter Modeling:</b> Regression scatter plots mapping daily precipitation against lost operational hours.</li>
+        </ul>
+        <span style="font-size: 0.85rem; color: #64748b; font-style: italic;">
+            Note: Advanced statistical tests are intentionally scheduled for Phase 2 to ensure thorough data validation and baseline descriptive analysis first.
+        </span>
+    </div>
+    """, unsafe_allow_html=True)

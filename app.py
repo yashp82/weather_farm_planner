@@ -1,38 +1,43 @@
 """
 ================================================================================
-PART 3: STREAMLIT DASHBOARD & APPLICATION INTEGRATION
+WEATHER-BASED FARM MACHINERY PLANNER (MASTER APPLICATION RUNNER)
 ================================================================================
-Team Member 3 Responsibility:
-- Streamlit dashboard layout, responsive multi-tab architecture, custom CSS
-- User control panel in sidebar (district selection, date picker, operations)
-- Team member contribution tracking & viva documentation display
-- Integration with Member 1's Data Pipeline (data_pipeline.py)
-- Integration with Member 2's Analytics Engine (analytics.py)
-- Tab 1: Dashboard Overview (4 summary cards, narrative summary, clean_data report)
-- Tab 2: Historical Data Analysis UI (descriptive metrics, chart display, roadmap)
-- Tab 3: Weather-Based Planning UI (Phase 2 preview, operation profiles, blueprint)
+Capstone Project: S.Y. B.Tech Python Programming Laboratory
+Problem Statement: Agricultural Mechanization & Farm Productivity
+================================================================================
+Modular Architecture Divided Across 3 Team Members:
+- PART 1 (Member 1): part1_data_overview.py       (Data Ingestion, Cleaning & Tab 1)
+- PART 2 (Member 2): part2_historical_analysis.py (Statistical Engine, Charts & Tab 2)
+- PART 3 (Member 3): part3_weather_planning.py    (Planning System, Heuristics & Tab 3)
 ================================================================================
 """
 
 import datetime
-import os
-import pandas as pd
 import streamlit as st
 
 # ------------------------------------------------------------------------------
-# Import Modular Components from Member 1 and Member 2
+# Import Modular Components (Parts 1, 2, and 3 in Sequential Order)
 # ------------------------------------------------------------------------------
-from data_pipeline import (
+# Part 1: Member 1 Module
+from part1_data_overview import (
     fetch_weather_data,
     load_sample_weather_data,
     load_machinery_data,
-    clean_data
+    clean_data,
+    render_tab1_overview
 )
 
-from analytics import (
+# Part 2: Member 2 Module
+from part2_historical_analysis import (
     calculate_weather_statistics,
     calculate_delay_statistics,
-    create_basic_weather_charts
+    render_tab2_analysis
+)
+
+# Part 3: Member 3 Module
+from part3_weather_planning import (
+    OPERATION_GUIDELINES,
+    render_tab3_planning
 )
 
 # ------------------------------------------------------------------------------
@@ -48,13 +53,10 @@ st.set_page_config(
 # Custom Agricultural Styling: Green, White, and Soft Grey Theme
 st.markdown("""
 <style>
-    /* Main container background and typography */
     .main {
         background-color: #f8faf8;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    
-    /* Title and Header Banner */
     .header-banner {
         background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 60%, #40916c 100%);
         color: white;
@@ -87,8 +89,6 @@ st.markdown("""
         font-weight: 600;
         border: 1px solid rgba(255, 255, 255, 0.3);
     }
-
-    /* Metric Cards */
     .metric-card {
         background: white;
         border: 1px solid #e2e8f0;
@@ -115,18 +115,6 @@ st.markdown("""
         font-size: 0.8rem;
         color: #64748b;
     }
-
-    /* Team Contribution Box */
-    .team-box {
-        background: #f0fdf4;
-        border: 1px solid #bbf7d0;
-        border-radius: 8px;
-        padding: 12px 16px;
-        margin-bottom: 20px;
-        font-size: 0.88rem;
-    }
-
-    /* Callout & Preview Containers */
     .academic-callout {
         background-color: #f0fdf4;
         border: 1px solid #bbf7d0;
@@ -178,38 +166,10 @@ LOCATIONS = {
     "Thane": {"lat": 19.2183, "lon": 72.9781, "state": "Maharashtra"},
 }
 
-FARM_OPERATIONS = ["Ploughing", "Sowing", "Spraying", "Harvesting"]
-
-# Operation Specifications (Heuristics & Phase 2 Blueprint)
-OPERATION_GUIDELINES = {
-    "Ploughing": {
-        "description": "Primary and secondary tillage to prepare seedbed friability. Waterlogged soil causes wheel slippage and severe subsoil compaction.",
-        "recommended_max_rain": 10.0,
-        "machine": "Tractor (45–55 HP) with Disc or Mouldboard Plough",
-        "guidance": "Moderate moisture tolerance. Unworkable under standing water."
-    },
-    "Sowing": {
-        "description": "Seed placement via automated seed drills. Excessive rainfall washes out seed beds or causes surface soil crusting.",
-        "recommended_max_rain": 8.0,
-        "machine": "Tractor with Automated Seed-cum-Fertilizer Drill",
-        "guidance": "Requires optimal seedbed moisture; vulnerable to heavy downpours."
-    },
-    "Spraying": {
-        "description": "Application of crop protection chemicals and foliar nutrients. Foliage must stay dry for several hours to prevent chemical wash-off.",
-        "recommended_max_rain": 1.0,
-        "machine": "Tractor-Mounted Boom Sprayer",
-        "guidance": "High rain sensitivity. Best performed during dry spells."
-    },
-    "Harvesting": {
-        "description": "Mechanized grain and crop cutting. Saturated soil mires heavy combine harvesters, causing lodging and grain spoilage.",
-        "recommended_max_rain": 2.0,
-        "machine": "Self-Propelled Combine Harvester",
-        "guidance": "High moisture sensitivity. Requires firm, dry field conditions."
-    }
-}
+FARM_OPERATIONS = list(OPERATION_GUIDELINES.keys())
 
 # ------------------------------------------------------------------------------
-# 3. Header Banner & Team Contribution Overview
+# 3. Header Banner & Team Code Division Overview
 # ------------------------------------------------------------------------------
 st.markdown("""
 <div class="header-banner">
@@ -220,34 +180,34 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Team Contribution Card (For College Evaluator / Viva)
-with st.expander("👥 Team Members & Code Division (For Evaluation)", expanded=False):
+with st.expander("👥 Team Code Division (3 Members — Click to View)", expanded=False):
     c_m1, c_m2, c_m3 = st.columns(3)
     with c_m1:
         st.markdown("""
-        **Member 1: Data Pipeline Lead**  
-        *Source File:* `data_pipeline.py`  
-        - Open-Meteo REST API data retrieval  
-        - Offline demonstration CSV loading  
+        **Part 1: Member 1**  
+        *File:* `part1_data_overview.py`  
+        - Weather API ingestion & caching  
+        - Offline demonstration dataset  
         - Data cleaning pipeline (`clean_data`)  
-        - Missing/duplicate/anomaly reporting
+        - Renders **Tab 1: Dashboard Overview**
         """)
     with c_m2:
         st.markdown("""
-        **Member 2: Analytics & Visuals Lead**  
-        *Source File:* `analytics.py`  
-        - Weather descriptive statistics (mean, median, std)  
-        - Machinery delay analytics & hours lost  
+        **Part 2: Member 2**  
+        *File:* `part2_historical_analysis.py`  
+        - Weather & machinery statistics formulas  
+        - Schedule variance & hours lost  
         - Matplotlib & Seaborn charting engine  
-        - Mathematical formulas & statistical logic
+        - Renders **Tab 2: Historical Analysis**
         """)
     with c_m3:
         st.markdown("""
-        **Member 3: UI & System Integration Lead**  
-        *Source File:* `app.py`  
-        - Streamlit dashboard architecture & CSS  
-        - Sidebar filters & district coordination  
-        - Dashboard integration (Tabs 1, 2, and 3)  
-        - Phase 2 Planning Framework Blueprint
+        **Part 3: Member 3**  
+        *File:* `part3_weather_planning.py` & `app.py`  
+        - Streamlit master dashboard shell & CSS  
+        - Operational heuristic guidelines  
+        - Phase 2 decision roadmap blueprint  
+        - Renders **Tab 3: Weather-Based Planning**
         """)
 
 # ------------------------------------------------------------------------------
@@ -327,19 +287,19 @@ custom_machinery_file = st.sidebar.file_uploader(
     help="Upload your own machinery log CSV with required columns (see README)."
 )
 
-# Academic Attribution & Division Notice
+# Academic Division Notice
 st.sidebar.markdown("---")
 st.sidebar.markdown("""
 <div style='background-color: #f1f5f9; padding: 10px; border-radius: 6px; font-size: 0.8rem; color: #475569;'>
-    <b>Team Division:</b><br>
-    • <b>Member 1:</b> <code>data_pipeline.py</code><br>
-    • <b>Member 2:</b> <code>analytics.py</code><br>
-    • <b>Member 3:</b> <code>app.py</code>
+    <b>Code Architecture (3 Parts):</b><br>
+    • <b>Part 1 (Member 1):</b> <code>part1_data_overview.py</code><br>
+    • <b>Part 2 (Member 2):</b> <code>part2_historical_analysis.py</code><br>
+    • <b>Part 3 (Member 3):</b> <code>part3_weather_planning.py</code>
 </div>
 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 5. Data Pipeline Execution (Invoking Member 1's Functions)
+# 5. Execute Data Pipeline (Part 1 — Member 1)
 # ------------------------------------------------------------------------------
 raw_weather_df = None
 weather_fetch_error = None
@@ -369,17 +329,14 @@ raw_machinery_df, machinery_load_error = load_machinery_data(uploaded_file=custo
 if machinery_load_error:
     st.error(f"❌ Machinery Dataset Error: {machinery_load_error}")
 
-# Execute Data Cleaning (clean_data from Member 1)
-clean_weather_df, weather_clean_report = clean_data(raw_weather_df, dataset_type="weather") if raw_weather_df is not None else (pd.DataFrame(), {})
-clean_machinery_df, machinery_clean_report = clean_data(raw_machinery_df, dataset_type="machinery") if raw_machinery_df is not None else (pd.DataFrame(), {})
+# Execute Data Cleaning Pipeline
+clean_weather_df, weather_clean_report = clean_data(raw_weather_df, dataset_type="weather") if raw_weather_df is not None else ({}, {})
+clean_machinery_df, machinery_clean_report = clean_data(raw_machinery_df, dataset_type="machinery") if raw_machinery_df is not None else ({}, {})
 
 # Filter machinery by location if applicable
 if not clean_machinery_df.empty and "location" in clean_machinery_df.columns:
     loc_match = clean_machinery_df[clean_machinery_df["location"].str.lower() == selected_location.lower()]
-    if not loc_match.empty:
-        active_machinery_df = loc_match.copy()
-    else:
-        active_machinery_df = clean_machinery_df.copy()
+    active_machinery_df = loc_match.copy() if not loc_match.empty else clean_machinery_df.copy()
 else:
     active_machinery_df = clean_machinery_df.copy()
 
@@ -388,360 +345,57 @@ if filter_machinery_by_op and not active_machinery_df.empty and "operation" in a
     active_machinery_df = active_machinery_df[active_machinery_df["operation"].str.lower() == selected_op.lower()]
 
 # ------------------------------------------------------------------------------
-# 6. Analytics Execution (Invoking Member 2's Functions)
+# 6. Execute Analytics Engine (Part 2 — Member 2)
 # ------------------------------------------------------------------------------
 weather_stats = calculate_weather_statistics(clean_weather_df, rainy_threshold=rainy_threshold)
 machinery_stats = calculate_delay_statistics(active_machinery_df)
 
 # ------------------------------------------------------------------------------
-# 7. Main Application Tabs (Assembled by Member 3)
+# 7. Render Main Tabs (Sequential Order: Parts 1, 2, and 3)
 # ------------------------------------------------------------------------------
 tab1, tab2, tab3 = st.tabs([
-    "📊 Dashboard Overview",
-    "📈 Historical Data Analysis",
-    "🗓️ Weather-Based Planning"
+    "📊 Tab 1: Dashboard Overview (Part 1)",
+    "📈 Tab 2: Historical Analysis (Part 2)",
+    "🗓️ Tab 3: Weather-Based Planning (Part 3)"
 ])
 
-# ==============================================================================
-# TAB 1: DASHBOARD OVERVIEW
-# ==============================================================================
+# Tab 1: Delegated to Part 1 (Member 1)
 with tab1:
-    st.subheader(f"Overview for {selected_location}")
-    if is_sample_weather:
-        st.caption("ℹ️ Showing synthetic sample demonstration weather records.")
-    else:
-        st.caption(f"🌐 Sourced from Open-Meteo Historical Archive API ({start_date_str} to {end_date_str}).")
+    render_tab1_overview(
+        clean_weather_df=clean_weather_df,
+        active_machinery_df=active_machinery_df,
+        weather_clean_report=weather_clean_report,
+        machinery_clean_report=machinery_clean_report,
+        weather_stats=weather_stats,
+        machinery_stats=machinery_stats,
+        selected_location=selected_location,
+        is_sample_weather=is_sample_weather,
+        start_date_str=start_date_str,
+        end_date_str=end_date_str,
+        selected_op=selected_op,
+        filter_machinery_by_op=filter_machinery_by_op,
+        rainy_threshold=rainy_threshold
+    )
 
-    # Four Summary Metric Cards
-    m_col1, m_col2, m_col3, m_col4 = st.columns(4)
-
-    # 1. Total weather records
-    with m_col1:
-        val1 = f"{weather_stats['total_records']}" if weather_stats else "Not available"
-        desc1 = f"Days in period" if weather_stats else "Missing weather data"
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Weather Records</div>
-            <div class="metric-value">{val1}</div>
-            <div class="metric-desc">{desc1}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # 2. Average daily rainfall (mm)
-    with m_col2:
-        val2 = f"{weather_stats['mean_rain']:.1f} mm" if weather_stats else "Not available"
-        desc2 = f"Median: {weather_stats['median_rain']:.1f} mm" if weather_stats else "N/A"
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Avg Daily Rainfall</div>
-            <div class="metric-value">{val2}</div>
-            <div class="metric-desc">{desc2}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # 3. Number of rainy days
-    with m_col3:
-        if weather_stats:
-            val3 = f"{weather_stats['rainy_days_count']}"
-            desc3 = f"{weather_stats['rainy_days_pct']:.1f}% of days (>{rainy_threshold} mm)"
-        else:
-            val3 = "Not available"
-            desc3 = "N/A"
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Rainy Days</div>
-            <div class="metric-value">{val3}</div>
-            <div class="metric-desc">{desc3}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # 4. Historical machinery operation delay rate
-    # Calculated strictly from machinery operation records only!
-    with m_col4:
-        if machinery_stats:
-            val4 = f"{machinery_stats['delay_rate']:.1f}%"
-            desc4 = f"{machinery_stats['delayed_operations']} of {machinery_stats['total_operations']} operations delayed"
-        else:
-            val4 = "Not available"
-            desc4 = "No valid machinery logs"
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Machinery Delay Rate</div>
-            <div class="metric-value">{val4}</div>
-            <div class="metric-desc">{desc4}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # Automated Summary Narrative
-    st.markdown("#### 📝 Executive Summary")
-    summary_parts = []
-    if weather_stats:
-        summary_parts.append(
-            f"Over the selected interval in **{selected_location}**, a total of **{weather_stats['total_records']} daily weather observations** "
-            f"were loaded with cumulative rainfall reaching **{weather_stats['total_rain']:.1f} mm**. "
-            f"Rainfall (> {rainy_threshold} mm) was recorded on **{weather_stats['rainy_days_count']} days ({weather_stats['rainy_days_pct']:.1f}%)**, "
-            f"yielding a daily mean of **{weather_stats['mean_rain']:.1f} mm** and a peak daily event of **{weather_stats['max_rain']:.1f} mm**."
-        )
-    else:
-        summary_parts.append("Weather records are currently not available for this period.")
-
-    if machinery_stats:
-        op_scope = f"specifically for {selected_op}" if filter_machinery_by_op else "across all logged operations"
-        summary_parts.append(
-            f"From the machinery operation dataset ({op_scope}), **{machinery_stats['total_operations']} operations** were logged. "
-            f"The recorded delay rate was **{machinery_stats['delay_rate']:.1f}%** ({machinery_stats['delayed_operations']} delayed operations), "
-            f"representing a cumulative **{machinery_stats['total_hours_lost']:.1f} operating hours lost** compared to planned schedules."
-        )
-    else:
-        summary_parts.append("Machinery operational records are not available to calculate delay statistics.")
-
-    st.markdown(f"""
-    <div class="academic-callout">
-        {' '.join(summary_parts)}
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Data Quality and Cleaning Report (from Member 1's clean_data)
-    with st.expander("🛠️ Data Quality & Cleaning Summary (clean_data() Report)", expanded=False):
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown("**Weather Dataset Cleaning (Member 1)**")
-            st.write(f"- Initial rows: {weather_clean_report.get('initial_rows', 0)}")
-            st.write(f"- Final cleaned rows: {weather_clean_report.get('final_rows', 0)}")
-            st.write(f"- Missing values identified: {weather_clean_report.get('missing_values_found', 0)}")
-            st.write(f"- Duplicates removed: {weather_clean_report.get('duplicates_removed', 0)}")
-            st.write(f"- Anomalies handled: {weather_clean_report.get('anomalies_handled', 0)}")
-            if weather_clean_report.get("notes"):
-                for note in weather_clean_report["notes"]:
-                    st.caption(f"• {note}")
-
-        with c2:
-            st.markdown("**Machinery Operations Dataset Cleaning (Member 1)**")
-            st.write(f"- Initial rows: {machinery_clean_report.get('initial_rows', 0)}")
-            st.write(f"- Final cleaned rows: {machinery_clean_report.get('final_rows', 0)}")
-            st.write(f"- Missing values identified: {machinery_clean_report.get('missing_values_found', 0)}")
-            st.write(f"- Duplicates removed: {machinery_clean_report.get('duplicates_removed', 0)}")
-            st.write(f"- Anomalies handled: {machinery_clean_report.get('anomalies_handled', 0)}")
-            if machinery_clean_report.get("notes"):
-                for note in machinery_clean_report["notes"]:
-                    st.caption(f"• {note}")
-
-    # Data Preview Tables
-    with st.expander("🔍 View Cleaned Weather & Machinery Tables", expanded=False):
-        t1, t2 = st.columns(2)
-        with t1:
-            st.markdown("**Cleaned Weather Data (First 10 Rows)**")
-            if clean_weather_df is not None and not clean_weather_df.empty:
-                st.dataframe(clean_weather_df.head(10), use_container_width=True)
-            else:
-                st.write("No weather data available.")
-        with t2:
-            st.markdown("**Cleaned Machinery Operations Data (First 10 Rows)**")
-            if active_machinery_df is not None and not active_machinery_df.empty:
-                st.dataframe(active_machinery_df.head(10), use_container_width=True)
-            else:
-                st.write("No machinery data available.")
-
-# ==============================================================================
-# TAB 2: HISTORICAL DATA ANALYSIS
-# ==============================================================================
+# Tab 2: Delegated to Part 2 (Member 2)
 with tab2:
-    st.subheader("Historical Weather & Machinery Analysis (Phase 1)")
+    render_tab2_analysis(
+        clean_weather_df=clean_weather_df,
+        active_machinery_df=active_machinery_df,
+        weather_stats=weather_stats,
+        machinery_stats=machinery_stats,
+        rainy_threshold=rainy_threshold
+    )
 
-    # Section A: Descriptive Weather Statistics (Member 2)
-    st.markdown("### A. Descriptive Weather Statistics")
-    if weather_stats:
-        d_col1, d_col2, d_col3 = st.columns(3)
-        with d_col1:
-            st.markdown(f"**Mean Daily Rainfall:** `{weather_stats['mean_rain']:.2f} mm`")
-            st.markdown(f"**Median Daily Rainfall:** `{weather_stats['median_rain']:.2f} mm`")
-        with d_col2:
-            st.markdown(f"**Maximum Daily Rainfall:** `{weather_stats['max_rain']:.2f} mm`")
-            st.markdown(f"**Standard Deviation ($\\sigma$):** `{weather_stats['std_rain']:.2f} mm`")
-        with d_col3:
-            st.markdown(f"**Total Cumulative Rainfall:** `{weather_stats['total_rain']:.1f} mm`")
-            st.markdown(f"**Rainy Days ($>{rainy_threshold}$ mm):** `{weather_stats['rainy_days_count']} ({weather_stats['rainy_days_pct']:.1f}%)`")
-        st.caption(f"*Rainy day definition: Daily precipitation > {rainy_threshold} mm.*")
-    else:
-        st.warning("Weather statistics are unavailable because valid weather data has not been loaded.")
-
-    st.markdown("---")
-
-    # Section B: Machinery Delay Analysis (Member 2)
-    st.markdown("### B. Machinery Operation Delay Analysis")
-    if machinery_stats:
-        m_col1, m_col2, m_col3 = st.columns(3)
-        with m_col1:
-            st.markdown(f"**Total Operations Logged:** `{machinery_stats['total_operations']}`")
-            st.markdown(f"**Delayed Operations:** `{machinery_stats['delayed_operations']}`")
-            st.markdown(f"**Overall Delay Rate:** `{machinery_stats['delay_rate']:.1f}%`")
-        with m_col2:
-            st.markdown(f"**Avg Planned Duration:** `{machinery_stats['avg_planned_hours']:.1f} hours`")
-            st.markdown(f"**Avg Actual Duration:** `{machinery_stats['avg_actual_hours']:.1f} hours`")
-            st.markdown(f"**Total Recorded Hours Lost:** `{machinery_stats['total_hours_lost']:.1f} hours`")
-        with m_col3:
-            st.markdown("**Delay Reasons Breakdown:**")
-            if "delay_reason" in active_machinery_df.columns:
-                reasons = active_machinery_df["delay_reason"].value_counts()
-                for r_name, r_cnt in reasons.items():
-                    st.write(f"- *{r_name.capitalize()}*: {r_cnt}")
-    else:
-        st.info("No machinery operational records loaded.")
-
-    st.markdown("---")
-
-    # Section C: Basic Visualizations (Member 2)
-    st.markdown("### C. Statistical Data Visualizations")
-    charts = create_basic_weather_charts(clean_weather_df, rainy_threshold=rainy_threshold)
-
-    # 1. Line chart: Daily rainfall over time
-    if "rainfall_timeline" in charts:
-        st.pyplot(charts["rainfall_timeline"])
-        st.markdown("""
-        <div class="chart-insight-box">
-            <b>Chart 1 Insight:</b> Historical chronology of daily precipitation. 
-            Highlights high-intensity precipitation peaks during monsoon months, contrasting with prolonged dry periods.
-        </div>
-        """, unsafe_allow_html=True)
-
-    # 2. Bar chart: Monthly rainfall totals
-    if "monthly_rainfall" in charts:
-        st.pyplot(charts["monthly_rainfall"])
-        st.markdown("""
-        <div class="chart-insight-box">
-            <b>Chart 2 Insight:</b> Monthly cumulative precipitation totals. 
-            Peak rainfall months coincide with critical Kharif tillage and sowing operations, driving potential machinery delays.
-        </div>
-        """, unsafe_allow_html=True)
-
-    # 3. Histogram: Distribution of daily rainfall
-    if "rainfall_dist" in charts:
-        st.pyplot(charts["rainfall_dist"])
-        st.markdown("""
-        <div class="chart-insight-box">
-            <b>Chart 3 Insight:</b> Frequency distribution of daily precipitation values. 
-            Shows strong positive skewness, with the majority of days recording dry or light precipitation and a smaller tail of extreme downpours.
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    # Section D: Phase 2 Roadmap & Deferred Features Preview (Member 3)
-    st.markdown("""
-    <div class="phase2-callout">
-        <h4 style="margin: 0 0 8px 0; color: #1e3a8a;">🔬 Advanced Delay Modeling & Inferential Statistics (Phase 2 Preview)</h4>
-        <p style="margin: 0 0 10px 0; font-size: 0.93rem; color: #334155;">
-            In accordance with the <b>Phase 1 milestone (50–60% Completion)</b>, baseline data ingestion, data cleaning, 
-            and descriptive statistics have been fully validated. The following advanced inferential and predictive analyses 
-            are scheduled for implementation in <b>Phase 2</b>:
-        </p>
-        <ul style="margin: 0 0 10px 20px; font-size: 0.9rem; color: #475569; line-height: 1.6;">
-            <li><b>Merged Weather-Delay Cross Analysis:</b> Direct comparison of operational delay rates between rainy and non-rainy operation days.</li>
-            <li><b>Correlation Analysis:</b> Calculation of Pearson ($r$) and Spearman ($\rho$) correlation coefficients between daily rainfall and hours lost.</li>
-            <li><b>Hypothesis Testing:</b> Non-parametric SciPy statistical testing (Mann-Whitney $U$ test) with null hypothesis and $p$-value interpretation.</li>
-            <li><b>Rainfall-versus-Delay Scatter Modeling:</b> Regression scatter plots mapping daily precipitation against lost operational hours.</li>
-        </ul>
-        <span style="font-size: 0.85rem; color: #64748b; font-style: italic;">
-            Note: Advanced statistical tests are intentionally scheduled for Phase 2 to ensure thorough data validation and baseline descriptive analysis first.
-        </span>
-    </div>
-    """, unsafe_allow_html=True)
-
-# ==============================================================================
-# TAB 3: WEATHER-BASED PLANNING SECTION (PHASE 2 PREVIEW)
-# ==============================================================================
+# Tab 3: Delegated to Part 3 (Member 3)
 with tab3:
-    st.subheader(f"Weather-Based Operational Planning (Phase 2 Preview) — {selected_location}")
-
-    # Professional Phase 2 Planning Notice (Member 3)
-    st.markdown("""
-    <div class="phase2-callout">
-        <h4 style="margin: 0 0 6px 0; color: #1e3a8a;">🗓️ Operational Decision-Support System Roadmap</h4>
-        <p style="margin: 0 0 8px 0; font-size: 0.95rem; color: #1e293b;">
-            <b>Advanced weather-based planning and delay analysis will be implemented in Phase 2.</b>
-        </p>
-        <p style="margin: 0; font-size: 0.9rem; color: #475569;">
-            Phase 1 provides the foundational descriptive benchmarks and data pipelines. Phase 2 will introduce live numerical forecast integration 
-            and operational risk matrices to generate forward-looking machinery schedules.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Architectural Blueprint for Selected Operation
-    op_guide = OPERATION_GUIDELINES.get(selected_op, {})
-    st.markdown(f"#### 🚜 Target Operation Profile: {selected_op}")
-
-    p_col1, p_col2 = st.columns([3, 2])
-    with p_col1:
-        st.markdown(f"""
-        <div style="background-color: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);">
-            <h5 style="margin: 0 0 8px 0; color: #1b4332;">Agronomic & Machinery Specifications</h5>
-            <p style="margin: 0 0 10px 0; font-size: 0.92rem; color: #334155;">{op_guide.get('description', '')}</p>
-            <ul style="margin: 0; padding-left: 20px; font-size: 0.88rem; color: #475569; line-height: 1.6;">
-                <li><b>Typical Equipment:</b> {op_guide.get('machine', '')}</li>
-                <li><b>Operational Sensitivity:</b> {op_guide.get('guidance', '')}</li>
-                <li><b>Planned Maximum Rainfall Tolerance:</b> <code>≤ {op_guide.get('recommended_max_rain', 5.0)} mm</code></li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with p_col2:
-        st.markdown("""
-        <div style="background-color: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);">
-            <h5 style="margin: 0 0 8px 0; color: #1b4332;">Planned Decision Indicators</h5>
-            <div style="margin-bottom: 8px;">
-                <span style="background-color: #d1fae5; color: #065f46; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">🟢 Lower weather concern</span>
-                <span style="font-size: 0.8rem; color: #475569;"> — Conducive field conditions</span>
-            </div>
-            <div style="margin-bottom: 8px;">
-                <span style="background-color: #fef3c7; color: #92400e; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">🟡 Caution</span>
-                <span style="font-size: 0.8rem; color: #475569;"> — Marginal moisture / ground check required</span>
-            </div>
-            <div>
-                <span style="background-color: #fee2e2; color: #991b1b; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">🔴 Higher rainfall concern</span>
-                <span style="font-size: 0.8rem; color: #475569;"> — Wet soil / high immobilization risk</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # Phase 2 Implementation Framework Table
-    st.markdown("#### 📋 Phase 2 Implementation Framework")
-    framework_data = pd.DataFrame([
-        {
-            "Module": "Live Forecast Ingestion",
-            "Target Feature": "Open-Meteo 7-day numerical weather forecast integration",
-            "Status": "Scheduled for Phase 2"
-        },
-        {
-            "Module": "Dynamic Heuristics Engine",
-            "Target Feature": "Operation-specific precipitation and probability threshold evaluation",
-            "Status": "Scheduled for Phase 2"
-        },
-        {
-            "Module": "Automated Advisory Matrix",
-            "Target Feature": "Day-by-day scheduling recommendations and dry window detection",
-            "Status": "Scheduled for Phase 2"
-        },
-        {
-            "Module": "Soil Trafficability Integration",
-            "Target Feature": "Field inspection guidelines and drainage check advisories",
-            "Status": "Scheduled for Phase 2"
-        }
-    ])
-    st.table(framework_data)
-
-    # Disclaimers
-    st.markdown("""
-    <div class="disclaimer-callout">
-        <b>⚠️ Agronomic Limitations & Field Trafficability Notice:</b><br>
-        Precipitation forecasts and threshold heuristics represent planning aids, not guaranteed agronomic safety limits. 
-        Rainfall alone does not directly measure root-zone soil saturation or load-bearing trafficability. 
-        Physical on-site inspection must always precede heavy machinery deployment.
-    </div>
-    """, unsafe_allow_html=True)
+    render_tab3_planning(
+        selected_location=selected_location,
+        selected_op=selected_op
+    )
 
 # ------------------------------------------------------------------------------
-# 8. Application Footer & Data Source Transparency
+# 8. Application Footer
 # ------------------------------------------------------------------------------
 st.markdown("---")
 st.markdown("""
@@ -749,6 +403,6 @@ st.markdown("""
     <b>Weather-Based Farm Machinery Planner</b> | S.Y. B.Tech Python Programming Laboratory Capstone Project (Phase 1: 50–60% Completion)<br>
     <b>Weather Data Provider:</b> Open-Meteo Historical Archive API (Non-commercial open-access).<br>
     <b>Machinery Operations:</b> Demonstration dataset with explicitly synthetic records for student laboratory analysis.<br>
-    <b>Modular Code Architecture:</b> <code>data_pipeline.py</code> (Member 1) | <code>analytics.py</code> (Member 2) | <code>app.py</code> (Member 3).
+    <b>Order-Wise Code Division:</b> <code>part1_data_overview.py</code> (Member 1) | <code>part2_historical_analysis.py</code> (Member 2) | <code>part3_weather_planning.py</code> (Member 3).
 </div>
 """, unsafe_allow_html=True)
