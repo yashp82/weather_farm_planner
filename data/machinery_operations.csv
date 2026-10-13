@@ -1,0 +1,299 @@
+date,location,operation,machine_type,planned_hours,actual_hours,delayed,delay_reason
+2024-05-15,Pune,Ploughing,Power Tiller,8.0,8.0,0,none
+2024-05-17,Pune,Ploughing,Tractor,8.0,8.0,0,none
+2024-05-19,Pune,Ploughing,Tractor,4.0,4.0,0,none
+2024-05-21,Pune,Ploughing,Power Tiller,7.0,7.0,0,none
+2024-05-23,Pune,Ploughing,Power Tiller,4.0,4.0,0,none
+2024-05-25,Pune,Ploughing,Tractor,7.0,9.5,1,other
+2024-05-27,Pune,Ploughing,Tractor,5.0,5.0,0,none
+2024-05-29,Pune,Ploughing,Power Tiller,8.0,9.5,1,wet soil
+2024-05-31,Pune,Ploughing,Power Tiller,6.0,6.0,0,none
+2024-06-02,Pune,Ploughing,Power Tiller,6.0,10.0,1,wet soil
+2024-06-04,Pune,Ploughing,Tractor,8.0,9.5,1,labour shortage
+2024-06-06,Pune,Ploughing,Tractor,8.0,11.0,1,rain
+2024-06-08,Pune,Ploughing,Tractor,8.0,8.0,0,none
+2024-06-10,Pune,Ploughing,Power Tiller,4.0,4.0,0,none
+2024-06-12,Pune,Ploughing,Tractor,4.0,8.0,1,labour shortage
+2024-06-14,Pune,Ploughing,Tractor,5.0,5.0,0,none
+2024-06-16,Pune,Ploughing,Tractor,8.0,8.0,0,none
+2024-06-18,Pune,Ploughing,Power Tiller,6.0,10.0,1,labour shortage
+2024-06-20,Pune,Ploughing,Tractor,7.0,9.0,1,rain
+2024-06-22,Pune,Ploughing,Power Tiller,5.0,9.0,1,wet soil
+2024-06-24,Pune,Ploughing,Power Tiller,5.0,5.0,0,none
+2024-05-15,Nashik,Ploughing,Power Tiller,5.0,9.0,1,machine maintenance
+2024-05-17,Nashik,Ploughing,Power Tiller,4.0,4.0,0,none
+2024-05-19,Nashik,Ploughing,Power Tiller,4.0,4.0,0,none
+2024-05-21,Nashik,Ploughing,Power Tiller,8.0,9.5,1,machine maintenance
+2024-05-23,Nashik,Ploughing,Tractor,7.0,7.0,0,none
+2024-05-25,Nashik,Ploughing,Tractor,4.0,4.0,0,none
+2024-05-27,Nashik,Ploughing,Tractor,5.0,5.0,0,none
+2024-05-29,Nashik,Ploughing,Power Tiller,7.0,7.0,0,none
+2024-05-31,Nashik,Ploughing,Power Tiller,4.0,4.0,0,none
+2024-06-02,Nashik,Ploughing,Power Tiller,6.0,8.0,1,machine maintenance
+2024-06-04,Nashik,Ploughing,Power Tiller,6.0,6.0,0,none
+2024-06-06,Nashik,Ploughing,Tractor,4.0,4.0,0,none
+2024-06-08,Nashik,Ploughing,Power Tiller,8.0,10.0,1,wet soil
+2024-06-10,Nashik,Ploughing,Power Tiller,8.0,8.0,0,none
+2024-06-12,Nashik,Ploughing,Tractor,4.0,5.5,1,rain
+2024-06-14,Nashik,Ploughing,Tractor,6.0,9.0,1,rain
+2024-06-16,Nashik,Ploughing,Tractor,4.0,4.0,0,none
+2024-06-18,Nashik,Ploughing,Power Tiller,7.0,7.0,0,none
+2024-06-20,Nashik,Ploughing,Tractor,8.0,8.0,0,none
+2024-06-22,Nashik,Ploughing,Power Tiller,5.0,5.0,0,none
+2024-06-24,Nashik,Ploughing,Power Tiller,5.0,5.0,0,none
+2024-05-15,Thane,Ploughing,Power Tiller,4.0,4.0,0,none
+2024-05-17,Thane,Ploughing,Tractor,7.0,7.0,0,none
+2024-05-19,Thane,Ploughing,Power Tiller,7.0,9.5,1,rain
+2024-05-21,Thane,Ploughing,Power Tiller,4.0,5.5,1,other
+2024-05-23,Thane,Ploughing,Tractor,7.0,7.0,0,none
+2024-05-25,Thane,Ploughing,Power Tiller,5.0,5.0,0,none
+2024-05-27,Thane,Ploughing,Power Tiller,6.0,9.0,1,machine maintenance
+2024-05-29,Thane,Ploughing,Tractor,8.0,8.0,0,none
+2024-05-31,Thane,Ploughing,Power Tiller,6.0,6.0,0,none
+2024-06-02,Thane,Ploughing,Power Tiller,5.0,5.0,0,none
+2024-06-04,Thane,Ploughing,Power Tiller,5.0,7.5,1,machine maintenance
+2024-06-06,Thane,Ploughing,Power Tiller,6.0,9.0,1,rain
+2024-06-08,Thane,Ploughing,Tractor,8.0,10.0,1,wet soil
+2024-06-10,Thane,Ploughing,Power Tiller,7.0,7.0,0,none
+2024-06-12,Thane,Ploughing,Tractor,4.0,4.0,0,none
+2024-06-14,Thane,Ploughing,Power Tiller,6.0,6.0,0,none
+2024-06-16,Thane,Ploughing,Tractor,7.0,7.0,0,none
+2024-06-18,Thane,Ploughing,Power Tiller,8.0,8.0,0,none
+2024-06-20,Thane,Ploughing,Tractor,7.0,7.0,0,none
+2024-06-22,Thane,Ploughing,Tractor,5.0,5.0,0,none
+2024-06-24,Thane,Ploughing,Power Tiller,4.0,8.0,1,rain
+2024-06-20,Pune,Sowing,Tractor,4.0,7.0,1,rain
+2024-06-22,Pune,Sowing,Seed Drill,5.0,7.5,1,machine maintenance
+2024-06-24,Pune,Sowing,Tractor,5.0,5.0,0,none
+2024-06-26,Pune,Sowing,Tractor,4.0,8.0,1,machine maintenance
+2024-06-28,Pune,Sowing,Tractor,8.0,10.5,1,rain
+2024-06-30,Pune,Sowing,Seed Drill,8.0,8.0,0,none
+2024-07-02,Pune,Sowing,Seed Drill,5.0,5.0,0,none
+2024-07-04,Pune,Sowing,Tractor,6.0,6.0,0,none
+2024-07-06,Pune,Sowing,Tractor,7.0,9.5,1,rain
+2024-07-08,Pune,Sowing,Tractor,8.0,9.5,1,rain
+2024-07-10,Pune,Sowing,Seed Drill,5.0,8.0,1,rain
+2024-07-12,Pune,Sowing,Seed Drill,7.0,7.0,0,none
+2024-07-14,Pune,Sowing,Tractor,8.0,10.0,1,rain
+2024-07-16,Pune,Sowing,Tractor,5.0,7.5,1,wet soil
+2024-07-18,Pune,Sowing,Seed Drill,4.0,5.5,1,rain
+2024-07-20,Pune,Sowing,Tractor,4.0,4.0,0,none
+2024-07-22,Pune,Sowing,Seed Drill,6.0,10.0,1,rain
+2024-07-24,Pune,Sowing,Seed Drill,8.0,12.0,1,rain
+2024-06-20,Nashik,Sowing,Tractor,6.0,8.0,1,labour shortage
+2024-06-22,Nashik,Sowing,Seed Drill,4.0,4.0,0,none
+2024-06-24,Nashik,Sowing,Seed Drill,8.0,8.0,0,none
+2024-06-26,Nashik,Sowing,Tractor,6.0,6.0,0,none
+2024-06-28,Nashik,Sowing,Tractor,7.0,11.0,1,wet soil
+2024-06-30,Nashik,Sowing,Seed Drill,7.0,9.5,1,wet soil
+2024-07-02,Nashik,Sowing,Seed Drill,7.0,7.0,0,none
+2024-07-04,Nashik,Sowing,Seed Drill,6.0,8.0,1,wet soil
+2024-07-06,Nashik,Sowing,Tractor,7.0,8.5,1,rain
+2024-07-08,Nashik,Sowing,Seed Drill,6.0,6.0,0,none
+2024-07-10,Nashik,Sowing,Seed Drill,7.0,7.0,0,none
+2024-07-12,Nashik,Sowing,Tractor,8.0,11.0,1,machine maintenance
+2024-07-14,Nashik,Sowing,Tractor,6.0,9.0,1,other
+2024-07-16,Nashik,Sowing,Seed Drill,5.0,7.5,1,other
+2024-07-18,Nashik,Sowing,Tractor,6.0,6.0,0,none
+2024-07-20,Nashik,Sowing,Seed Drill,8.0,8.0,0,none
+2024-07-22,Nashik,Sowing,Seed Drill,7.0,7.0,0,none
+2024-07-24,Nashik,Sowing,Tractor,8.0,8.0,0,none
+2024-06-20,Thane,Sowing,Seed Drill,5.0,5.0,0,none
+2024-06-22,Thane,Sowing,Tractor,8.0,8.0,0,none
+2024-06-24,Thane,Sowing,Seed Drill,7.0,11.0,1,machine maintenance
+2024-06-26,Thane,Sowing,Tractor,5.0,5.0,0,none
+2024-06-28,Thane,Sowing,Tractor,7.0,7.0,0,none
+2024-06-30,Thane,Sowing,Tractor,5.0,6.5,1,rain
+2024-07-02,Thane,Sowing,Seed Drill,5.0,7.5,1,rain
+2024-07-04,Thane,Sowing,Seed Drill,6.0,6.0,0,none
+2024-07-06,Thane,Sowing,Seed Drill,4.0,4.0,0,none
+2024-07-08,Thane,Sowing,Seed Drill,7.0,7.0,0,none
+2024-07-10,Thane,Sowing,Seed Drill,8.0,10.5,1,wet soil
+2024-07-12,Thane,Sowing,Tractor,4.0,6.5,1,wet soil
+2024-07-14,Thane,Sowing,Seed Drill,6.0,6.0,0,none
+2024-07-16,Thane,Sowing,Seed Drill,7.0,7.0,0,none
+2024-07-18,Thane,Sowing,Tractor,4.0,5.5,1,rain
+2024-07-20,Thane,Sowing,Seed Drill,5.0,8.0,1,rain
+2024-07-22,Thane,Sowing,Tractor,4.0,5.5,1,rain
+2024-07-24,Thane,Sowing,Tractor,5.0,6.5,1,rain
+2024-07-15,Pune,Spraying,Boom Sprayer,6.0,8.5,1,rain
+2024-07-17,Pune,Spraying,Boom Sprayer,6.0,6.0,0,none
+2024-07-19,Pune,Spraying,Tractor,8.0,10.0,1,rain
+2024-07-21,Pune,Spraying,Tractor,4.0,4.0,0,none
+2024-07-23,Pune,Spraying,Tractor,6.0,8.0,1,wet soil
+2024-07-25,Pune,Spraying,Boom Sprayer,8.0,8.0,0,none
+2024-07-27,Pune,Spraying,Tractor,4.0,4.0,0,none
+2024-07-29,Pune,Spraying,Boom Sprayer,5.0,5.0,0,none
+2024-07-31,Pune,Spraying,Boom Sprayer,7.0,7.0,0,none
+2024-08-02,Pune,Spraying,Tractor,5.0,5.0,0,none
+2024-08-04,Pune,Spraying,Boom Sprayer,7.0,8.5,1,machine maintenance
+2024-08-06,Pune,Spraying,Boom Sprayer,8.0,12.0,1,rain
+2024-08-08,Pune,Spraying,Tractor,7.0,7.0,0,none
+2024-08-10,Pune,Spraying,Boom Sprayer,7.0,9.0,1,rain
+2024-08-12,Pune,Spraying,Boom Sprayer,8.0,12.0,1,wet soil
+2024-08-14,Pune,Spraying,Boom Sprayer,7.0,7.0,0,none
+2024-08-16,Pune,Spraying,Tractor,6.0,6.0,0,none
+2024-08-18,Pune,Spraying,Boom Sprayer,8.0,8.0,0,none
+2024-08-20,Pune,Spraying,Tractor,8.0,11.0,1,machine maintenance
+2024-08-22,Pune,Spraying,Tractor,5.0,9.0,1,rain
+2024-08-24,Pune,Spraying,Boom Sprayer,5.0,9.0,1,wet soil
+2024-08-26,Pune,Spraying,Tractor,7.0,7.0,0,none
+2024-08-28,Pune,Spraying,Tractor,4.0,7.0,1,rain
+2024-08-30,Pune,Spraying,Boom Sprayer,4.0,6.0,1,labour shortage
+2024-09-01,Pune,Spraying,Tractor,8.0,12.0,1,wet soil
+2024-09-03,Pune,Spraying,Tractor,5.0,9.0,1,other
+2024-09-05,Pune,Spraying,Tractor,4.0,6.5,1,labour shortage
+2024-09-07,Pune,Spraying,Tractor,6.0,8.5,1,machine maintenance
+2024-09-09,Pune,Spraying,Boom Sprayer,8.0,8.0,0,none
+2024-09-11,Pune,Spraying,Boom Sprayer,7.0,7.0,0,none
+2024-09-13,Pune,Spraying,Tractor,7.0,11.0,1,rain
+2024-09-15,Pune,Spraying,Boom Sprayer,6.0,10.0,1,rain
+2024-09-17,Pune,Spraying,Tractor,5.0,6.5,1,rain
+2024-09-19,Pune,Spraying,Boom Sprayer,6.0,6.0,0,none
+2024-07-15,Nashik,Spraying,Boom Sprayer,7.0,7.0,0,none
+2024-07-17,Nashik,Spraying,Boom Sprayer,5.0,7.5,1,wet soil
+2024-07-19,Nashik,Spraying,Tractor,6.0,6.0,0,none
+2024-07-21,Nashik,Spraying,Boom Sprayer,6.0,6.0,0,none
+2024-07-23,Nashik,Spraying,Tractor,6.0,6.0,0,none
+2024-07-25,Nashik,Spraying,Boom Sprayer,5.0,5.0,0,none
+2024-07-27,Nashik,Spraying,Tractor,7.0,10.0,1,rain
+2024-07-29,Nashik,Spraying,Boom Sprayer,8.0,8.0,0,none
+2024-07-31,Nashik,Spraying,Tractor,4.0,4.0,0,none
+2024-08-02,Nashik,Spraying,Boom Sprayer,5.0,9.0,1,wet soil
+2024-08-04,Nashik,Spraying,Tractor,4.0,5.5,1,rain
+2024-08-06,Nashik,Spraying,Tractor,5.0,5.0,0,none
+2024-08-08,Nashik,Spraying,Boom Sprayer,5.0,7.0,1,rain
+2024-08-10,Nashik,Spraying,Boom Sprayer,5.0,8.0,1,rain
+2024-08-12,Nashik,Spraying,Boom Sprayer,7.0,7.0,0,none
+2024-08-14,Nashik,Spraying,Boom Sprayer,7.0,9.0,1,rain
+2024-08-16,Nashik,Spraying,Boom Sprayer,4.0,4.0,0,none
+2024-08-18,Nashik,Spraying,Boom Sprayer,7.0,11.0,1,rain
+2024-08-20,Nashik,Spraying,Tractor,8.0,8.0,0,none
+2024-08-22,Nashik,Spraying,Tractor,5.0,5.0,0,none
+2024-08-24,Nashik,Spraying,Tractor,7.0,7.0,0,none
+2024-08-26,Nashik,Spraying,Tractor,8.0,8.0,0,none
+2024-08-28,Nashik,Spraying,Boom Sprayer,4.0,4.0,0,none
+2024-08-30,Nashik,Spraying,Tractor,5.0,5.0,0,none
+2024-09-01,Nashik,Spraying,Boom Sprayer,8.0,11.0,1,rain
+2024-09-03,Nashik,Spraying,Boom Sprayer,6.0,6.0,0,none
+2024-09-05,Nashik,Spraying,Boom Sprayer,7.0,11.0,1,wet soil
+2024-09-07,Nashik,Spraying,Boom Sprayer,7.0,7.0,0,none
+2024-09-09,Nashik,Spraying,Tractor,7.0,7.0,0,none
+2024-09-11,Nashik,Spraying,Boom Sprayer,6.0,8.5,1,wet soil
+2024-09-13,Nashik,Spraying,Tractor,6.0,7.5,1,wet soil
+2024-09-15,Nashik,Spraying,Tractor,6.0,10.0,1,rain
+2024-09-17,Nashik,Spraying,Boom Sprayer,7.0,8.5,1,wet soil
+2024-09-19,Nashik,Spraying,Boom Sprayer,5.0,5.0,0,none
+2024-07-15,Thane,Spraying,Tractor,6.0,9.0,1,rain
+2024-07-17,Thane,Spraying,Tractor,6.0,8.5,1,wet soil
+2024-07-19,Thane,Spraying,Boom Sprayer,5.0,7.5,1,machine maintenance
+2024-07-21,Thane,Spraying,Boom Sprayer,5.0,5.0,0,none
+2024-07-23,Thane,Spraying,Boom Sprayer,4.0,4.0,0,none
+2024-07-25,Thane,Spraying,Tractor,8.0,8.0,0,none
+2024-07-27,Thane,Spraying,Boom Sprayer,6.0,9.0,1,rain
+2024-07-29,Thane,Spraying,Tractor,7.0,10.0,1,wet soil
+2024-07-31,Thane,Spraying,Boom Sprayer,6.0,6.0,0,none
+2024-08-02,Thane,Spraying,Boom Sprayer,6.0,6.0,0,none
+2024-08-04,Thane,Spraying,Tractor,4.0,8.0,1,rain
+2024-08-06,Thane,Spraying,Boom Sprayer,6.0,8.0,1,rain
+2024-08-08,Thane,Spraying,Tractor,6.0,6.0,0,none
+2024-08-10,Thane,Spraying,Boom Sprayer,8.0,10.5,1,rain
+2024-08-12,Thane,Spraying,Tractor,6.0,8.5,1,wet soil
+2024-08-14,Thane,Spraying,Tractor,5.0,7.5,1,rain
+2024-08-16,Thane,Spraying,Boom Sprayer,7.0,7.0,0,none
+2024-08-18,Thane,Spraying,Tractor,7.0,7.0,0,none
+2024-08-20,Thane,Spraying,Tractor,6.0,8.5,1,other
+2024-08-22,Thane,Spraying,Boom Sprayer,8.0,8.0,0,none
+2024-08-24,Thane,Spraying,Tractor,5.0,5.0,0,none
+2024-08-26,Thane,Spraying,Tractor,6.0,6.0,0,none
+2024-08-28,Thane,Spraying,Boom Sprayer,8.0,8.0,0,none
+2024-08-30,Thane,Spraying,Boom Sprayer,8.0,8.0,0,none
+2024-09-01,Thane,Spraying,Tractor,4.0,4.0,0,none
+2024-09-03,Thane,Spraying,Tractor,6.0,6.0,0,none
+2024-09-05,Thane,Spraying,Boom Sprayer,5.0,5.0,0,none
+2024-09-07,Thane,Spraying,Tractor,4.0,4.0,0,none
+2024-09-09,Thane,Spraying,Boom Sprayer,5.0,7.0,1,labour shortage
+2024-09-11,Thane,Spraying,Boom Sprayer,8.0,10.5,1,wet soil
+2024-09-13,Thane,Spraying,Tractor,7.0,7.0,0,none
+2024-09-15,Thane,Spraying,Tractor,7.0,7.0,0,none
+2024-09-17,Thane,Spraying,Boom Sprayer,4.0,8.0,1,rain
+2024-09-19,Thane,Spraying,Tractor,7.0,7.0,0,none
+2024-10-05,Pune,Harvesting,Tractor,4.0,4.0,0,none
+2024-10-07,Pune,Harvesting,Tractor,4.0,4.0,0,none
+2024-10-09,Pune,Harvesting,Combine Harvester,5.0,5.0,0,none
+2024-10-11,Pune,Harvesting,Combine Harvester,8.0,9.5,1,other
+2024-10-13,Pune,Harvesting,Combine Harvester,7.0,7.0,0,none
+2024-10-15,Pune,Harvesting,Tractor,7.0,7.0,0,none
+2024-10-17,Pune,Harvesting,Combine Harvester,5.0,5.0,0,none
+2024-10-19,Pune,Harvesting,Combine Harvester,5.0,5.0,0,none
+2024-10-21,Pune,Harvesting,Combine Harvester,8.0,8.0,0,none
+2024-10-23,Pune,Harvesting,Tractor,5.0,5.0,0,none
+2024-10-25,Pune,Harvesting,Combine Harvester,6.0,6.0,0,none
+2024-10-27,Pune,Harvesting,Combine Harvester,5.0,7.5,1,other
+2024-10-29,Pune,Harvesting,Combine Harvester,6.0,6.0,0,none
+2024-10-31,Pune,Harvesting,Tractor,8.0,10.0,1,other
+2024-11-02,Pune,Harvesting,Tractor,4.0,4.0,0,none
+2024-11-04,Pune,Harvesting,Tractor,6.0,6.0,0,none
+2024-11-06,Pune,Harvesting,Tractor,7.0,7.0,0,none
+2024-11-08,Pune,Harvesting,Combine Harvester,8.0,10.0,1,other
+2024-11-10,Pune,Harvesting,Combine Harvester,7.0,11.0,1,labour shortage
+2024-11-12,Pune,Harvesting,Tractor,8.0,10.0,1,machine maintenance
+2024-11-14,Pune,Harvesting,Combine Harvester,7.0,7.0,0,none
+2024-11-16,Pune,Harvesting,Combine Harvester,4.0,4.0,0,none
+2024-11-18,Pune,Harvesting,Tractor,8.0,8.0,0,none
+2024-11-20,Pune,Harvesting,Tractor,8.0,8.0,0,none
+2024-11-22,Pune,Harvesting,Tractor,8.0,10.5,1,machine maintenance
+2024-11-24,Pune,Harvesting,Tractor,7.0,7.0,0,none
+2024-10-05,Nashik,Harvesting,Tractor,4.0,4.0,0,none
+2024-10-07,Nashik,Harvesting,Combine Harvester,5.0,5.0,0,none
+2024-10-09,Nashik,Harvesting,Combine Harvester,5.0,5.0,0,none
+2024-10-11,Nashik,Harvesting,Tractor,8.0,10.0,1,machine maintenance
+2024-10-13,Nashik,Harvesting,Combine Harvester,4.0,7.0,1,machine maintenance
+2024-10-15,Nashik,Harvesting,Tractor,7.0,9.0,1,labour shortage
+2024-10-17,Nashik,Harvesting,Combine Harvester,8.0,8.0,0,none
+2024-10-19,Nashik,Harvesting,Tractor,8.0,10.0,1,rain
+2024-10-21,Nashik,Harvesting,Combine Harvester,8.0,10.0,1,machine maintenance
+2024-10-23,Nashik,Harvesting,Tractor,8.0,8.0,0,none
+2024-10-25,Nashik,Harvesting,Tractor,7.0,7.0,0,none
+2024-10-27,Nashik,Harvesting,Combine Harvester,8.0,8.0,0,none
+2024-10-29,Nashik,Harvesting,Tractor,5.0,9.0,1,labour shortage
+2024-10-31,Nashik,Harvesting,Combine Harvester,8.0,8.0,0,none
+2024-11-02,Nashik,Harvesting,Tractor,8.0,8.0,0,none
+2024-11-04,Nashik,Harvesting,Combine Harvester,7.0,7.0,0,none
+2024-11-06,Nashik,Harvesting,Combine Harvester,4.0,4.0,0,none
+2024-11-08,Nashik,Harvesting,Combine Harvester,5.0,5.0,0,none
+2024-11-10,Nashik,Harvesting,Tractor,4.0,4.0,0,none
+2024-11-12,Nashik,Harvesting,Combine Harvester,5.0,5.0,0,none
+2024-11-14,Nashik,Harvesting,Tractor,4.0,5.5,1,machine maintenance
+2024-11-16,Nashik,Harvesting,Tractor,5.0,5.0,0,none
+2024-11-18,Nashik,Harvesting,Tractor,4.0,8.0,1,machine maintenance
+2024-11-20,Nashik,Harvesting,Combine Harvester,4.0,7.0,1,machine maintenance
+2024-11-22,Nashik,Harvesting,Tractor,6.0,8.5,1,labour shortage
+2024-11-24,Nashik,Harvesting,Tractor,6.0,6.0,0,none
+2024-10-05,Thane,Harvesting,Combine Harvester,7.0,8.5,1,rain
+2024-10-07,Thane,Harvesting,Tractor,6.0,6.0,0,none
+2024-10-09,Thane,Harvesting,Tractor,8.0,8.0,0,none
+2024-10-11,Thane,Harvesting,Combine Harvester,7.0,9.0,1,wet soil
+2024-10-13,Thane,Harvesting,Tractor,8.0,8.0,0,none
+2024-10-15,Thane,Harvesting,Combine Harvester,7.0,8.5,1,machine maintenance
+2024-10-17,Thane,Harvesting,Combine Harvester,6.0,6.0,0,none
+2024-10-19,Thane,Harvesting,Combine Harvester,8.0,8.0,0,none
+2024-10-21,Thane,Harvesting,Tractor,8.0,8.0,0,none
+2024-10-23,Thane,Harvesting,Combine Harvester,4.0,4.0,0,none
+2024-10-25,Thane,Harvesting,Combine Harvester,6.0,6.0,0,none
+2024-10-27,Thane,Harvesting,Combine Harvester,7.0,7.0,0,none
+2024-10-29,Thane,Harvesting,Combine Harvester,4.0,4.0,0,none
+2024-10-31,Thane,Harvesting,Combine Harvester,7.0,9.0,1,rain
+2024-11-02,Thane,Harvesting,Combine Harvester,5.0,5.0,0,none
+2024-11-04,Thane,Harvesting,Tractor,8.0,8.0,0,none
+2024-11-06,Thane,Harvesting,Tractor,7.0,7.0,0,none
+2024-11-08,Thane,Harvesting,Tractor,8.0,12.0,1,machine maintenance
+2024-11-10,Thane,Harvesting,Tractor,8.0,8.0,0,none
+2024-11-12,Thane,Harvesting,Combine Harvester,6.0,6.0,0,none
+2024-11-14,Thane,Harvesting,Combine Harvester,6.0,6.0,0,none
+2024-11-16,Thane,Harvesting,Tractor,8.0,8.0,0,none
+2024-11-18,Thane,Harvesting,Combine Harvester,4.0,4.0,0,none
+2024-11-20,Thane,Harvesting,Combine Harvester,6.0,6.0,0,none
+2024-11-22,Thane,Harvesting,Tractor,6.0,6.0,0,none
+2024-11-24,Thane,Harvesting,Combine Harvester,5.0,5.0,0,none
+2024-05-15,Pune,Ploughing,Power Tiller,8.0,8.0,0,none
